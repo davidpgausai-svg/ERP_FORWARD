@@ -9,6 +9,7 @@ Program operations:
 - `status-reporting` — workstream/program status and steering packets
 - `raid-capture` — risks, assumptions, issues, dependencies as records
 - `decision-drafting` — decision records with options, rationale, standard-vs-custom flag
+- `change-management` — change impacts, stakeholder analysis, communications, readiness, Change Network, and training curriculum
 
 Conversion discovery (works from the SharePoint extract library, Packs 1–5):
 - `peoplesoft-metadata-reader` — foundational: inventories, usage ranking, human translation
