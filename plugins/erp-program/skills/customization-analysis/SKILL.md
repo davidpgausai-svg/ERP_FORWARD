@@ -29,3 +29,16 @@ Read `../../references/extract-library-guide.md` first. Follow the peoplesoft-me
 ## Landing the output
 
 Per `../../references/output-conventions.md`: DRAFT legacy_object updates and requirement records via MCP when connected; dispositions route to functional owners for approval — never mark them decided.
+
+---
+
+## Self-Improvement
+
+At the end of every run, before ending:
+1. Did any step fail or need a workaround?
+2. Did the user correct or reject anything meaningful?
+3. Did you discover something a future run might need?
+
+Only propose a change if it meaningfully improves the skill. Surface it as a
+proposed edit for human approval - never edit the installed copy. Approved
+changes go back to this repo via PR.

@@ -31,3 +31,16 @@ Fewer, better options beat option sprawl: two real options and a recommendation 
 ## Landing the output
 
 Per `../../references/output-conventions.md`: create a decision record (DRAFT) via MCP when connected — schema.get first, link related requirements/RAID items/config objects, cite sources — and route to the named approver via submit-for-review once the user confirms. Never mark a decision approved yourself; the approval is the human's signature, and the system enforces that for good reason. Unconnected: save as markdown in the decisions folder using the same structure.
+
+---
+
+## Self-Improvement
+
+At the end of every run, before ending:
+1. Did any step fail or need a workaround?
+2. Did the user correct or reject anything meaningful?
+3. Did you discover something a future run might need?
+
+Only propose a change if it meaningfully improves the skill. Surface it as a
+proposed edit for human approval - never edit the installed copy. Approved
+changes go back to this repo via PR.

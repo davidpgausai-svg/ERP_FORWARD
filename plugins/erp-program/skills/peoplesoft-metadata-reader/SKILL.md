@@ -30,3 +30,16 @@ This is the foundational conversion skill: it turns raw extract CSVs into ranked
 ## Landing the output
 
 Per `../../references/output-conventions.md`: inventories as CSV + a short executive summary; findings in the standard format; DRAFT records to the record layer via MCP when connected (legacy_objects and data-quality findings especially). Always end with the unknowns list — what the extracts could not tell you and which human or additional pack could.
+
+---
+
+## Self-Improvement
+
+At the end of every run, before ending:
+1. Did any step fail or need a workaround?
+2. Did the user correct or reject anything meaningful?
+3. Did you discover something a future run might need?
+
+Only propose a change if it meaningfully improves the skill. Surface it as a
+proposed edit for human approval - never edit the installed copy. Approved
+changes go back to this repo via PR.

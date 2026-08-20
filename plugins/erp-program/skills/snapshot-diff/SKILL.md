@@ -30,3 +30,16 @@ Read `../../references/extract-library-guide.md` for pack contents and joins.
 ## Landing the output
 
 Per `../../references/output-conventions.md`. Material drift affecting signed-off designs or approved mappings deserves a RAID item — invoke the raid-capture skill's format and offer to log it. When the record layer is connected, attach the drift report as evidence to affected records.
+
+---
+
+## Self-Improvement
+
+At the end of every run, before ending:
+1. Did any step fail or need a workaround?
+2. Did the user correct or reject anything meaningful?
+3. Did you discover something a future run might need?
+
+Only propose a change if it meaningfully improves the skill. Surface it as a
+proposed edit for human approval - never edit the installed copy. Approved
+changes go back to this repo via PR.

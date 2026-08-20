@@ -32,3 +32,16 @@ Read `../../references/extract-library-guide.md`; the access chain is PSROLEUSER
 ## Landing the output
 
 Per `../../references/output-conventions.md`: security_role, sod_conflict, and finding records as DRAFT via MCP when connected. This skill reads user IDs — treat outputs as INTERNAL; aggregate by role/department in anything widely shared, and never include the raw user-level matrix in an executive deliverable.
+
+---
+
+## Self-Improvement
+
+At the end of every run, before ending:
+1. Did any step fail or need a workaround?
+2. Did the user correct or reject anything meaningful?
+3. Did you discover something a future run might need?
+
+Only propose a change if it meaningfully improves the skill. Surface it as a
+proposed edit for human approval - never edit the installed copy. Approved
+changes go back to this repo via PR.

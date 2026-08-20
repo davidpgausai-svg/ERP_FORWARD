@@ -25,3 +25,16 @@ Interfaces appearing in only one evidence source get LOW confidence by default â
 ## Landing the output
 
 Per `../../references/output-conventions.md`: inventory CSV + executive summary (headline: total interfaces, live count, criticality mix, absence list). DRAFT integration_interface records via MCP when connected. End with unknowns and the interview agenda.
+
+---
+
+## Self-Improvement
+
+At the end of every run, before ending:
+1. Did any step fail or need a workaround?
+2. Did the user correct or reject anything meaningful?
+3. Did you discover something a future run might need?
+
+Only propose a change if it meaningfully improves the skill. Surface it as a
+proposed edit for human approval - never edit the installed copy. Approved
+changes go back to this repo via PR.

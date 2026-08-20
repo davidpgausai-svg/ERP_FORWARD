@@ -29,3 +29,16 @@ Check for duplicates first: search existing RAID items (record layer `record.sea
 ## Landing the output
 
 Per `../../references/output-conventions.md`: write raid_item records as DRAFT via MCP when connected (schema.get first), otherwise append to the RAID log file/CSV in the standard finding format. Present the drafts to the user compactly for confirmation before submitting for review. Severity-1 items (payroll, go-live date, legal/union exposure): tell the user explicitly this looks escalation-worthy and to whom it should go.
+
+---
+
+## Self-Improvement
+
+At the end of every run, before ending:
+1. Did any step fail or need a workaround?
+2. Did the user correct or reject anything meaningful?
+3. Did you discover something a future run might need?
+
+Only propose a change if it meaningfully improves the skill. Surface it as a
+proposed edit for human approval - never edit the installed copy. Approved
+changes go back to this repo via PR.

@@ -25,3 +25,16 @@ Read `../../references/extract-library-guide.md`. The existing current-state doc
 ## Landing the output
 
 Per `../../references/output-conventions.md`: the map as a docx (use the docx format skill; black font, no horizontal dividers) matching the house documents; DRAFT process-map and handoff records via MCP when connected; validation status tracked on the record. Never present an unvalidated draft as a finished current-state map — label drafts loudly.
+
+---
+
+## Self-Improvement
+
+At the end of every run, before ending:
+1. Did any step fail or need a workaround?
+2. Did the user correct or reject anything meaningful?
+3. Did you discover something a future run might need?
+
+Only propose a change if it meaningfully improves the skill. Surface it as a
+proposed edit for human approval - never edit the installed copy. Approved
+changes go back to this repo via PR.
