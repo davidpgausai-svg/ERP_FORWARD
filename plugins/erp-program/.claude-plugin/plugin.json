@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "erp-program",
   "version": "1.0.0",
   "description": "ERP FORWARD program skills for the PeopleSoft-to-cloud-ERP transformation: program operations (status, RAID, decisions) and conversion discovery (PeopleSoft metadata reading, snapshot diffing, customization/security/integration/reporting analysis, process-map drafting).",
