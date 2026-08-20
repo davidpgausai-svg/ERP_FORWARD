@@ -9,7 +9,7 @@
     {
       "name": "erp-program",
       "source": "./plugins/erp-program",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "description": "ERP FORWARD program skills: status reporting, RAID capture, decision drafting, and the PeopleSoft conversion discovery toolkit (metadata, snapshots, customizations, security, integrations, reporting, process maps).",
       "author": { "name": "ERP FORWARD" },
       "keywords": ["erp", "peoplesoft", "conversion", "program-management"]
