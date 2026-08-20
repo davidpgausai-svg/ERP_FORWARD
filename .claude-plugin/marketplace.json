@@ -1,0 +1,18 @@
+﻿{
+  "name": "erp-forward",
+  "owner": {
+    "name": "ERP FORWARD",
+    "url": "https://github.com/davidpgausai-svg/ERP_FORWARD"
+  },
+  "description": "ERP FORWARD program and PeopleSoft conversion-discovery skills.",
+  "plugins": [
+    {
+      "name": "erp-program",
+      "source": "./plugins/erp-program",
+      "version": "1.0.0",
+      "description": "ERP FORWARD program skills: status reporting, RAID capture, decision drafting, and the PeopleSoft conversion discovery toolkit (metadata, snapshots, customizations, security, integrations, reporting, process maps).",
+      "author": { "name": "ERP FORWARD" },
+      "keywords": ["erp", "peoplesoft", "conversion", "program-management"]
+    }
+  ]
+}
