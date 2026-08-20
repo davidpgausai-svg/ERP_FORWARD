@@ -1,1 +1,504 @@
+-- ============================================================
+-- 00_discovery.sql — run FIRST against each instance (HCM, FSCM, CS)
+-- Pure SELECTs. Identifies the landscape and validates the kit's
+-- assumptions before any bulk extraction.
+-- ============================================================
 
+-- 0.1 Tools release and database identity
+SELECT * FROM PSSTATUS;                       -- TOOLSREL = PeopleTools version
+SELECT * FROM PSRELEASE ORDER BY RELEASEDTTM; -- application release history
+
+-- 0.2 Size of the metadata estate (sets expectations for Pack 1/2)
+SELECT 'PSRECDEFN'   AS OBJ, COUNT(*) AS CNT FROM PSRECDEFN   UNION ALL
+SELECT 'PSPNLDEFN'          , COUNT(*)        FROM PSPNLDEFN   UNION ALL
+SELECT 'PSPNLGRPDEFN'       , COUNT(*)        FROM PSPNLGRPDEFN UNION ALL
+SELECT 'PSMENUDEFN'         , COUNT(*)        FROM PSMENUDEFN  UNION ALL
+SELECT 'PSPCMPROG'          , COUNT(*)        FROM PSPCMPROG   UNION ALL
+SELECT 'PSSQLDEFN'          , COUNT(*)        FROM PSSQLDEFN   UNION ALL
+SELECT 'PSAEAPPLDEFN'       , COUNT(*)        FROM PSAEAPPLDEFN UNION ALL
+SELECT 'PSQRYDEFN'          , COUNT(*)        FROM PSQRYDEFN   UNION ALL
+SELECT 'PSPRCSDEFN'         , COUNT(*)        FROM PSPRCSDEFN  UNION ALL
+SELECT 'PSPRSMDEFN'         , COUNT(*)        FROM PSPRSMDEFN  UNION ALL
+SELECT 'PSTREEDEFN'         , COUNT(*)        FROM PSTREEDEFN  UNION ALL
+SELECT 'PSROLEDEFN'         , COUNT(*)        FROM PSROLEDEFN  UNION ALL
+SELECT 'PSOPRDEFN'          , COUNT(*)        FROM PSOPRDEFN;
+
+-- 0.3 Discover version-variable table families (names differ by
+-- release; export whatever exists). Oracle: ALL_TABLES / user schema.
+-- SQL Server: use INFORMATION_SCHEMA.TABLES.
+SELECT TABLE_NAME FROM ALL_TABLES
+ WHERE TABLE_NAME LIKE 'PS_EOAW%'    -- Approval Workflow Engine family
+    OR TABLE_NAME LIKE 'EOAW%'
+ ORDER BY TABLE_NAME;
+
+SELECT TABLE_NAME FROM ALL_TABLES
+ WHERE TABLE_NAME LIKE 'PSAPMSG%'    -- Integration Broker runtime/monitor
+    OR TABLE_NAME LIKE 'PSIB%'       -- IB definitions
+ ORDER BY TABLE_NAME;
+
+SELECT TABLE_NAME FROM ALL_TABLES
+ WHERE TABLE_NAME LIKE 'PSPM%'       -- Performance Monitor (if enabled)
+ ORDER BY TABLE_NAME;
+
+-- 0.4 Telemetry availability check (drives Pack 4 expectations)
+SELECT 'PSPRCSRQST rows' AS CHECK_ITEM, COUNT(*) AS CNT FROM PSPRCSRQST;
+SELECT MIN(RQSTDTTM) AS OLDEST, MAX(RQSTDTTM) AS NEWEST FROM PSPRCSRQST;  -- how far back history goes (purge check!)
+SELECT 'PSACCESSLOG rows', COUNT(*) FROM PSACCESSLOG;
+-- If the next one errors, query stats logging is not enabled — note it and enable prospectively:
+SELECT 'PSQRYEXECLOG rows', COUNT(*) FROM PSQRYEXECLOG;
+
+-- 0.5 Which portals/navigation trees exist (drives Pack 1 nav extract)
+SELECT PORTAL_NAME, COUNT(*) AS ITEMS FROM PSPRSMDEFN GROUP BY PORTAL_NAME ORDER BY 2 DESC;
+
+-- ============================================================
+-- 01_pack1_structure.sql — WHAT THE SYSTEM IS (pillar-agnostic)
+-- Sensitivity: none (no business data). Export each SELECT to
+-- <instance>_P1_<table>.csv
+-- ============================================================
+
+-- 1.1 Records (tables/views) and fields — the data dictionary
+SELECT * FROM PSRECDEFN;      -- every record; RECTYPE 0=table 1=view; note RECDESCR, SQLTABLENAME, LASTUPDOPRID
+SELECT * FROM PSRECFIELDDB;   -- fields on each record incl. inherited; USEEDIT bit 1 = key field
+SELECT * FROM PSDBFIELD;      -- field-level definitions (type, length, labels)
+
+-- 1.2 Pages, components, menus — the UI surface
+SELECT * FROM PSPNLDEFN;      -- pages
+SELECT * FROM PSPNLFIELD;     -- fields placed on pages (large; still fine)
+SELECT * FROM PSPNLGRPDEFN;   -- components (the "screens" users open)
+SELECT * FROM PSMENUDEFN;
+SELECT * FROM PSMENUITEM;
+
+-- 1.3 Portal registry — the navigation users actually see
+SELECT * FROM PSPRSMDEFN;     -- hierarchical: PORTAL_OBJNAME / PORTAL_PRNTOBJNAME
+
+-- 1.3b OPTIONAL readable navigation paths (Oracle hierarchical query;
+-- convenience only — the raw table above is sufficient for Databricks)
+SELECT PORTAL_NAME, PORTAL_OBJNAME, PORTAL_LABEL, PORTAL_URI_SEG2,
+       SYS_CONNECT_BY_PATH(PORTAL_LABEL, ' > ') AS NAV_PATH
+  FROM PSPRSMDEFN
+ WHERE PORTAL_NAME IN ('EMPLOYEE')          -- adjust per 0.5 results
+ START WITH PORTAL_PRNTOBJNAME = ' '
+ CONNECT BY PRIOR PORTAL_OBJNAME = PORTAL_PRNTOBJNAME
+        AND PORTAL_NAME = PRIOR PORTAL_NAME;
+
+-- 1.4 Translate (dropdown) values — every coded value in the system
+SELECT * FROM PSXLATITEM WHERE EFF_STATUS = 'A';
+
+-- 1.5 Field labels (useful for making extracts human-readable downstream)
+SELECT * FROM PSDBFLDLABL;
+
+-- ============================================================
+-- 02_pack2_logic_process.sql — WHAT THE SYSTEM DOES (pillar-agnostic)
+-- Sensitivity: low (business logic, no person data)
+-- ============================================================
+
+-- 2.1 PeopleCode INVENTORY (where code lives, how big, who touched it)
+-- Source text is tokenized in PSPCMPROG; export the inventory here,
+-- and pull source via App Designer "Copy Project to File" (see README).
+SELECT OBJECTVALUE1, OBJECTVALUE2, OBJECTVALUE3, OBJECTVALUE4,
+       OBJECTID1, OBJECTID2, OBJECTID3, OBJECTID4,
+       PROGLEN, LASTUPDOPRID, LASTUPDDTTM
+  FROM PSPCMPROG;
+
+-- 2.2 SQL objects (views, AE SQL, SQL definitions) — full text
+SELECT * FROM PSSQLDEFN;
+SELECT * FROM PSSQLTEXTDEFN;   -- the SQL text itself, chunked; reassemble on SQLID+SEQNUM
+
+-- 2.3 Application Engine programs (batch logic)
+SELECT * FROM PSAEAPPLDEFN;    -- programs
+SELECT * FROM PSAESECTDEFN;    -- sections
+SELECT * FROM PSAESTEPDEFN;    -- steps
+SELECT * FROM PSAESTMTDEFN;    -- step statements (join text via PSSQLTEXTDEFN)
+
+-- 2.4 Process Scheduler definitions (every batch process & job)
+SELECT * FROM PSPRCSDEFN;      -- processes (SQR, AE, COBOL, XMLP...)
+SELECT * FROM PSJOBDEFN;       -- jobs (chains of processes)
+SELECT * FROM PS_PRCSDEFNPNL;  -- process-to-component linkage, if present (existence-guard: skip if absent)
+
+-- 2.5 Queries (the shadow reporting estate)
+SELECT * FROM PSQRYDEFN;       -- all queries, public and private, incl. owner
+SELECT * FROM PSQRYRECORD;     -- records each query reads
+SELECT * FROM PSQRYFIELD;
+SELECT * FROM PSQRYCRITERIA;
+
+-- 2.6 Approval Workflow Engine — CONFIGURED APPROVAL ROUTES
+-- Table names vary slightly by release: export EVERY table found by the
+-- 00_discovery EOAW family scan. Typical members include process
+-- definitions, stages, paths, steps, criteria, and user lists.
+-- Generator (Oracle) — produces one extract statement per family table:
+SELECT 'SELECT * FROM ' || TABLE_NAME || ';' AS EXTRACT_STMT
+  FROM ALL_TABLES
+ WHERE TABLE_NAME LIKE 'PS_EOAW%' OR TABLE_NAME LIKE 'EOAW%'
+ ORDER BY TABLE_NAME;
+
+-- 2.7 Legacy workflow & business process objects (often stale but cheap)
+SELECT * FROM PSEVENTDEFN;
+SELECT * FROM PSACTIVITYDEFN;
+SELECT * FROM PSBUSPROCDEFN;   -- old App Designer "business process" maps
+
+-- 2.8 Integration Broker — definitions (the integration estate)
+SELECT * FROM PSNODEDEFN;      -- nodes (connected systems!)
+SELECT * FROM PSMSGDEFN;       -- messages
+-- Export remaining IB definition tables found by the 00_discovery scan:
+SELECT 'SELECT * FROM ' || TABLE_NAME || ';' AS EXTRACT_STMT
+  FROM ALL_TABLES
+ WHERE TABLE_NAME LIKE 'PSIB%'
+ ORDER BY TABLE_NAME;
+
+-- ============================================================
+-- 03_pack3_setup_generator.sql — WHAT THE SYSTEM IS CONFIGURED TO DO
+-- The enterprise trick: DO NOT hand-list setup tables per pillar.
+-- PeopleSoft setup tables are identifiable from metadata — they are
+-- SQL tables keyed by SETID or BUSINESS_UNIT. This script derives the
+-- complete inventory for THIS instance (works identically on HCM,
+-- FSCM, and Campus Solutions), then generates the extract statements.
+-- Sensitivity: low (reference/config data; no person-level rows)
+-- ============================================================
+
+-- 3.1 Inventory: all SETID-keyed setup records (Oracle BITAND; SQL Server: (USEEDIT & 1) = 1)
+SELECT d.RECNAME,
+       d.RECDESCR,
+       CASE WHEN d.SQLTABLENAME = ' ' OR d.SQLTABLENAME IS NULL
+            THEN 'PS_' || d.RECNAME ELSE d.SQLTABLENAME END AS PHYSICAL_TABLE,
+       d.OBJECTOWNERID,          -- owning module (HR, GL, SR, etc.) — your pillar grouping
+       d.LASTUPDOPRID, d.LASTUPDDTTM
+  FROM PSRECDEFN d
+ WHERE d.RECTYPE = 0                                   -- physical SQL tables only
+   AND EXISTS (SELECT 1 FROM PSRECFIELDDB f
+                WHERE f.RECNAME = d.RECNAME
+                  AND f.FIELDNAME = 'SETID'
+                  AND BITAND(f.USEEDIT, 1) = 1)        -- SETID is a key
+ ORDER BY d.OBJECTOWNERID, d.RECNAME;
+
+-- 3.2 Inventory: BUSINESS_UNIT-keyed configuration records
+SELECT d.RECNAME, d.RECDESCR,
+       CASE WHEN d.SQLTABLENAME = ' ' OR d.SQLTABLENAME IS NULL
+            THEN 'PS_' || d.RECNAME ELSE d.SQLTABLENAME END AS PHYSICAL_TABLE,
+       d.OBJECTOWNERID, d.LASTUPDOPRID, d.LASTUPDDTTM
+  FROM PSRECDEFN d
+ WHERE d.RECTYPE = 0
+   AND EXISTS (SELECT 1 FROM PSRECFIELDDB f
+                WHERE f.RECNAME = d.RECNAME
+                  AND f.FIELDNAME = 'BUSINESS_UNIT'
+                  AND BITAND(f.USEEDIT, 1) = 1)
+ ORDER BY d.OBJECTOWNERID, d.RECNAME;
+
+-- 3.3 Row counts for the inventory (prioritize what to extract first;
+-- skip empty tables). Generate the count statements:
+SELECT 'SELECT ''' || RECNAME || ''' AS RECNAME, COUNT(*) AS CNT FROM ' ||
+       CASE WHEN SQLTABLENAME = ' ' OR SQLTABLENAME IS NULL
+            THEN 'PS_' || RECNAME ELSE SQLTABLENAME END || ' UNION ALL' AS COUNT_STMT
+  FROM PSRECDEFN d
+ WHERE d.RECTYPE = 0
+   AND EXISTS (SELECT 1 FROM PSRECFIELDDB f
+                WHERE f.RECNAME = d.RECNAME AND f.FIELDNAME IN ('SETID','BUSINESS_UNIT')
+                  AND BITAND(f.USEEDIT, 1) = 1);
+
+-- 3.4 Generate the extract statements themselves (run output as a script,
+-- spooling each to <instance>_P3_<RECNAME>.csv; skip zero-row tables)
+SELECT 'SELECT * FROM ' ||
+       CASE WHEN SQLTABLENAME = ' ' OR SQLTABLENAME IS NULL
+            THEN 'PS_' || RECNAME ELSE SQLTABLENAME END || ';' AS EXTRACT_STMT
+  FROM PSRECDEFN d
+ WHERE d.RECTYPE = 0
+   AND EXISTS (SELECT 1 FROM PSRECFIELDDB f
+                WHERE f.RECNAME = d.RECNAME AND f.FIELDNAME IN ('SETID','BUSINESS_UNIT')
+                  AND BITAND(f.USEEDIT, 1) = 1)
+ ORDER BY d.RECNAME;
+
+-- NOTE: OBJECTOWNERID in 3.1/3.2 groups records by owning product
+-- (HR, PY, BN, GL, AP, PO, SR, SF, AD, etc.) — that column is how the
+-- one generator serves finance, student, HR, payroll, and supply chain
+-- at once. Extract PSOBJGROUP if you want the owner-ID decode table.
+
+-- ============================================================
+-- 03a_anchors_hcm.sql — HCM anchor setup tables (run on HCM instance)
+-- The generator (03) finds everything; these anchors are the tables
+-- the ERP program will ask about FIRST. Verify existence, then extract.
+-- ============================================================
+
+-- Existence guard — extract only names this returns:
+SELECT RECNAME FROM PSRECDEFN WHERE RECNAME IN (
+ 'COMPANY_TBL','BUS_UNIT_TBL_HR','DEPT_TBL','LOCATION_TBL','JOBCODE_TBL',
+ 'JOB_FAMILY_TBL','POSITION_DATA','SAL_PLAN_TBL','SAL_GRADE_TBL','SAL_STEP_TBL',
+ 'COMP_RATECD_TBL','PAYGROUP_TBL','PAY_CALENDAR','EARNINGS_TBL','DEDUCTION_TBL',
+ 'GARN_RULE_TBL','BEN_DEFN_PGM','BEN_DEFN_PLAN','ACTION_TBL','ACTN_REASON_TBL',
+ 'UNION_TBL','HOLIDAY_SCHED_TBL','SHIFT_TBL','ABS_TYPE_TBL','SCH_DEFN_TBL');
+
+-- Then, for each existing name:
+SELECT * FROM PS_COMPANY_TBL;
+SELECT * FROM PS_BUS_UNIT_TBL_HR;
+SELECT * FROM PS_DEPT_TBL;
+SELECT * FROM PS_LOCATION_TBL;
+SELECT * FROM PS_JOBCODE_TBL;
+SELECT * FROM PS_SAL_PLAN_TBL;
+SELECT * FROM PS_SAL_GRADE_TBL;
+SELECT * FROM PS_SAL_STEP_TBL;
+SELECT * FROM PS_PAYGROUP_TBL;
+SELECT * FROM PS_PAY_CALENDAR;
+SELECT * FROM PS_EARNINGS_TBL;
+SELECT * FROM PS_DEDUCTION_TBL;
+SELECT * FROM PS_BEN_DEFN_PGM;
+SELECT * FROM PS_ACTION_TBL;
+SELECT * FROM PS_ACTN_REASON_TBL;
+SELECT * FROM PS_UNION_TBL;          -- bargaining units — CBA discovery anchor
+-- POSITION_DATA is position master (org design), no person data:
+SELECT * FROM PS_POSITION_DATA;
+
+-- ============================================================
+-- 03b_anchors_fscm.sql — FSCM anchor setup tables (run on FSCM instance)
+-- Finance + supply chain. Generator (03) is authoritative; these are
+-- the first-asked tables. Verify existence, then extract.
+-- ============================================================
+
+SELECT RECNAME FROM PSRECDEFN WHERE RECNAME IN (
+ 'BUS_UNIT_TBL_FS','BUS_UNIT_TBL_GL','BUS_UNIT_TBL_AP','BUS_UNIT_TBL_AR',
+ 'BUS_UNIT_TBL_PM','BUS_UNIT_TBL_PO','INSTALLATION_FS',
+ 'GL_ACCOUNT_TBL','ALTACCT_TBL','DEPT_TBL','FUND_TBL','CLASS_CF_TBL',
+ 'PROGRAM_TBL','PROJECT','CHARTFIELD1_TBL','CHARTFIELD2_TBL','CHARTFIELD3_TBL',
+ 'OPER_UNIT_TBL','PRODUCT_TBL','LED_DEFN_TBL','LED_GRP_TBL','CAL_DETP_TBL',
+ 'SPEEDTYP_TBL','COMBO_RULE_TBL','JRNL_SOURCE_TBL','BANK_CD_TBL',
+ 'PYMT_TRMS_TBL','ORIGIN_TBL','CATEGORY_TBL','UNSPSC_TBL','SHIPTO_TBL',
+ 'ITM_CAT_TBL','MASTER_ITEM_TBL','BU_ITEMS_INV');
+
+-- Chartfields — the finance org structure:
+SELECT * FROM PS_GL_ACCOUNT_TBL;
+SELECT * FROM PS_DEPT_TBL;           -- chartfield department (FSCM side)
+SELECT * FROM PS_FUND_TBL;
+SELECT * FROM PS_PROGRAM_TBL;
+SELECT * FROM PS_CLASS_CF_TBL;
+SELECT * FROM PS_OPER_UNIT_TBL;
+SELECT * FROM PS_SPEEDTYP_TBL;
+-- Ledgers & calendars:
+SELECT * FROM PS_LED_DEFN_TBL;
+SELECT * FROM PS_LED_GRP_TBL;
+-- Business units across modules:
+SELECT * FROM PS_BUS_UNIT_TBL_FS;
+SELECT * FROM PS_BUS_UNIT_TBL_GL;
+-- Procure-to-pay reference:
+SELECT * FROM PS_PYMT_TRMS_TBL;
+SELECT * FROM PS_BANK_CD_TBL;        -- bank codes (setup, not account numbers — verify columns before export)
+-- Journal sources (integration fingerprints — every feeder system has one):
+SELECT * FROM PS_JRNL_SOURCE_TBL;
+
+-- ============================================================
+-- 03c_anchors_campus.sql — Campus Solutions anchors (run on CS instance)
+-- Student pillar. Generator (03) is authoritative; verify then extract.
+-- ============================================================
+
+SELECT RECNAME FROM PSRECDEFN WHERE RECNAME IN (
+ 'INSTITUTION_TBL','ACAD_CAREER_TBL','ACAD_PROG_TBL','ACAD_PLAN_TBL',
+ 'ACAD_SUB_PLN_TBL','ACAD_GROUP_TBL','ACAD_ORG_TBL','SUBJECT_TBL',
+ 'TERM_TBL','SESSION_TBL','ACAD_CAL_TBL','GRADE_SCHEME_TBL',
+ 'ITEM_TYPE_TBL','ADM_APPL_CTR_TBL','SRVC_IND_CD_TBL','CHECKLIST_TBL',
+ 'COMM_CATG_TBL');
+-- Student Financials fee/tuition setup varies by config — rely on the
+-- 03 generator (OBJECTOWNERID = SF) for the complete SF setup list.
+
+SELECT * FROM PS_INSTITUTION_TBL;
+SELECT * FROM PS_ACAD_CAREER_TBL;
+SELECT * FROM PS_ACAD_PROG_TBL;
+SELECT * FROM PS_ACAD_PLAN_TBL;
+SELECT * FROM PS_ACAD_ORG_TBL;       -- academic org structure — maps to HCM departments; crosswalk anchor
+SELECT * FROM PS_TERM_TBL;           -- academic calendar — feeds the cutover calendar layers
+SELECT * FROM PS_SESSION_TBL;
+SELECT * FROM PS_GRADE_SCHEME_TBL;
+SELECT * FROM PS_ITEM_TYPE_TBL;      -- student financials item types (charge/credit taxonomy)
+SELECT * FROM PS_SRVC_IND_CD_TBL;    -- service indicators (holds) — process-heavy config
+SELECT * FROM PS_CHECKLIST_TBL;      -- checklists = student-side workflow definitions
+
+-- ============================================================
+-- 03d_security_trees.sql — WHO CAN DO WHAT + ORG/REPORTING STRUCTURES
+-- Pillar-agnostic. Sensitivity: MODERATE (user IDs) — classify INTERNAL.
+-- Security is a process-discovery goldmine: page access by role by
+-- department reveals who actually performs each transaction.
+-- ============================================================
+
+-- Security model
+SELECT * FROM PSROLEDEFN;      -- roles
+SELECT * FROM PSCLASSDEFN;     -- permission lists
+SELECT * FROM PSAUTHITEM;      -- permission list -> menu/component/page access (the access matrix)
+SELECT * FROM PSROLECLASS;     -- role -> permission list
+SELECT * FROM PSROLEUSER;      -- user -> role (who holds what)
+SELECT OPRID, OPRDEFNDESC, EMPLID, OPRCLASS, ACCTLOCK, LASTSIGNONDTTM
+  FROM PSOPRDEFN;              -- user accounts (columns trimmed; excludes password hashes)
+
+-- Trees — org hierarchies, chartfield rollups, security trees.
+-- Finance reporting structure and HR department hierarchy both live here.
+SELECT * FROM PSTREESTRCT;
+SELECT * FROM PSTREEDEFN;
+SELECT * FROM PSTREENODE;
+SELECT * FROM PSTREELEAF;
+
+-- HCM row-level (department) security, if present on this instance:
+SELECT RECNAME FROM PSRECDEFN WHERE RECNAME IN ('SCRTY_TBL_DEPT','SJT_DEPT','SJT_CLASS_ALL');
+SELECT * FROM PS_SCRTY_TBL_DEPT;   -- extract those that exist
+
+-- ============================================================
+-- 04_pack4_usage.sql — WHAT ACTUALLY GETS USED (pillar-agnostic)
+-- The scale unlock: with ~40k+ objects per instance, usage ranking
+-- defines discovery scope. Aggregates by default; user IDs included
+-- at monthly grain — classify INTERNAL.
+-- EXTRACT THIS PACK FIRST-est: PSPRCSRQST is routinely purged.
+-- ============================================================
+
+-- 4.1 Process usage — what batch actually runs, how often, by whom
+SELECT r.PRCSNAME, r.PRCSTYPE, d.DESCR,
+       TRUNC(r.RQSTDTTM,'MM') AS RUN_MONTH,
+       r.OPRID, COUNT(*) AS RUNS,
+       SUM(CASE WHEN r.RUNSTATUS = '9' THEN 1 ELSE 0 END) AS SUCCESS_RUNS
+  FROM PSPRCSRQST r
+  LEFT JOIN PSPRCSDEFN d ON d.PRCSNAME = r.PRCSNAME AND d.PRCSTYPE = r.PRCSTYPE
+ GROUP BY r.PRCSNAME, r.PRCSTYPE, d.DESCR, TRUNC(r.RQSTDTTM,'MM'), r.OPRID
+ ORDER BY RUNS DESC;
+
+-- 4.2 Dead-process list — defined but never run in captured history
+SELECT d.PRCSNAME, d.PRCSTYPE, d.DESCR, d.LASTUPDDTTM
+  FROM PSPRCSDEFN d
+ WHERE NOT EXISTS (SELECT 1 FROM PSPRCSRQST r
+                    WHERE r.PRCSNAME = d.PRCSNAME AND r.PRCSTYPE = d.PRCSTYPE);
+
+-- 4.3 Query usage (only if PSQRYEXECLOG exists per 00_discovery)
+SELECT OPRID, QRYNAME, TRUNC(EXECDTTM,'MM') AS RUN_MONTH, COUNT(*) AS RUNS
+  FROM PSQRYEXECLOG
+ GROUP BY OPRID, QRYNAME, TRUNC(EXECDTTM,'MM')
+ ORDER BY RUNS DESC;
+
+-- 4.4 Login activity — monthly active users (population sizing per pillar)
+SELECT TRUNC(LOGINDTTM,'MM') AS LOGIN_MONTH,
+       COUNT(DISTINCT OPRID) AS ACTIVE_USERS, COUNT(*) AS LOGINS
+  FROM PSACCESSLOG
+ GROUP BY TRUNC(LOGINDTTM,'MM') ORDER BY 1;
+
+-- 4.5 Integration Broker traffic — which integrations actually fire.
+-- Monitor table names vary by release: use the header tables found by
+-- the 00_discovery PSAPMSG% scan and aggregate with this pattern:
+--   SELECT <node_col>, <service_operation_col>,
+--          TRUNC(<created_dttm_col>,'MM') AS TRAFFIC_MONTH, COUNT(*)
+--     FROM <PSAPMSG_header_table>
+--    GROUP BY <node_col>, <service_operation_col>,
+--          TRUNC(<created_dttm_col>,'MM');
+-- Do NOT bulk-export IB monitor detail — payloads can contain business
+-- data. Aggregates only from this family.
+
+-- 4.6 Performance Monitor page usage (only if PSPM% tables populated):
+--   component/page-level usage — the truest "what screens do people use."
+--   Adapt: SELECT <component_col>, TRUNC(<dttm_col>,'MM'), COUNT(*)
+--          FROM PSPMTRANSHIST GROUP BY 1,2;
+-- If PPM is off, ENABLE IT NOW prospectively — 60 days of page telemetry
+-- before design workshops is worth more than any interview schedule.
+
+-- ============================================================
+-- 05_pack5_customization.sql — WHAT YOU CHANGED (pillar-agnostic)
+-- The one-WHERE-clause customization scanner: delivered objects carry
+-- LASTUPDOPRID = 'PPLSOFT'; anything else was touched by your org.
+-- Caveat: admin-applied patches can stamp non-PPLSOFT IDs — treat as a
+-- first cut; the formal method is an App Designer compare vs DEMO.
+-- Sensitivity: none (metadata only).
+-- ============================================================
+
+-- 5.1 Summary: customization counts by object type
+SELECT 'RECORD' AS OBJTYPE, COUNT(*) AS CUSTOMIZED FROM PSRECDEFN    WHERE LASTUPDOPRID <> 'PPLSOFT' UNION ALL
+SELECT 'PAGE'            , COUNT(*) FROM PSPNLDEFN    WHERE LASTUPDOPRID <> 'PPLSOFT' UNION ALL
+SELECT 'COMPONENT'       , COUNT(*) FROM PSPNLGRPDEFN WHERE LASTUPDOPRID <> 'PPLSOFT' UNION ALL
+SELECT 'MENU'            , COUNT(*) FROM PSMENUDEFN   WHERE LASTUPDOPRID <> 'PPLSOFT' UNION ALL
+SELECT 'PEOPLECODE'      , COUNT(*) FROM PSPCMPROG    WHERE LASTUPDOPRID <> 'PPLSOFT' UNION ALL
+SELECT 'SQL_OBJECT'      , COUNT(*) FROM PSSQLDEFN    WHERE LASTUPDOPRID <> 'PPLSOFT' UNION ALL
+SELECT 'APP_ENGINE'      , COUNT(*) FROM PSAEAPPLDEFN WHERE LASTUPDOPRID <> 'PPLSOFT' UNION ALL
+SELECT 'PROCESS_DEFN'    , COUNT(*) FROM PSPRCSDEFN   WHERE LASTUPDOPRID <> 'PPLSOFT';
+
+-- 5.2 Detail: the customized-object inventory (one extract per type)
+SELECT 'RECORD' AS OBJTYPE, RECNAME AS OBJNAME, RECDESCR AS DESCR,
+       LASTUPDOPRID, LASTUPDDTTM
+  FROM PSRECDEFN WHERE LASTUPDOPRID <> 'PPLSOFT';
+
+SELECT 'PAGE', PNLNAME, ' ', LASTUPDOPRID, LASTUPDDTTM
+  FROM PSPNLDEFN WHERE LASTUPDOPRID <> 'PPLSOFT';
+
+SELECT 'COMPONENT', PNLGRPNAME, ' ', LASTUPDOPRID, LASTUPDDTTM
+  FROM PSPNLGRPDEFN WHERE LASTUPDOPRID <> 'PPLSOFT';
+
+SELECT 'PEOPLECODE', OBJECTVALUE1 || ':' || OBJECTVALUE2 || ':' || OBJECTVALUE3,
+       ' ', LASTUPDOPRID, LASTUPDDTTM
+  FROM PSPCMPROG WHERE LASTUPDOPRID <> 'PPLSOFT';
+
+SELECT 'APP_ENGINE', AE_APPLID, ' ', LASTUPDOPRID, LASTUPDDTTM
+  FROM PSAEAPPLDEFN WHERE LASTUPDOPRID <> 'PPLSOFT';
+
+-- 5.3 Custom-built (not just modified) objects — common site convention
+-- is names starting with the institution's prefix (e.g., 'UM', 'Z', 'X').
+-- Adjust the patterns to your naming standard:
+SELECT RECNAME, RECDESCR, LASTUPDOPRID, LASTUPDDTTM
+  FROM PSRECDEFN
+ WHERE RECNAME LIKE 'UM%' OR RECNAME LIKE 'Z%' OR RECNAME LIKE 'X%';
+
+-- 5.4 Queries — user-authored by definition; inventory public vs private
+SELECT QRYNAME, OPRID, QRYTYPE,
+       CASE WHEN OPRID = ' ' THEN 'PUBLIC' ELSE 'PRIVATE' END AS VISIBILITY,
+       LASTUPDDTTM
+  FROM PSQRYDEFN;
+
+-- 5.5 Migration history — every project ever migrated (your change log)
+SELECT * FROM PSPROJECTDEFN;
+SELECT * FROM PSPROJECTITEM;
+
+-- 5.6 Formal method (not SQL — note for the App Admin):
+-- App Designer -> Tools -> Compare and Report against the delivered DEMO
+-- database, by object type. Produces the authoritative delivered-vs-
+-- modified report. Run after this first-cut sweep identifies hot areas.
+
+file_name,instance,pack,source_object,row_count,extracted_at,extracted_by,notes
+HCM_P1_PSRECDEFN.csv,HCM,1,PSRECDEFN,,,,
+
+# ERP FORWARD — PeopleSoft Enterprise Extract Kit v1
+
+Purpose: mass-export the PeopleSoft environment — structure, logic, configuration, usage, and customizations — as CSV files that land in Databricks for Claude-assisted discovery. Covers the ENTIRE enterprise: HCM (HR/Payroll/Benefits/Time), FSCM (GL/AP/AR/Purchasing/Projects/Grants/Assets/Inventory), and Campus Solutions (student), plus Interaction Hub if present.
+
+## The key design fact
+
+PeopleSoft applications are all built on the same PeopleTools layer. The application definition — every table, page, component, menu, approval route, program, query, and security grant — lives in `PS*` metadata tables inside each application database. Therefore:
+
+- **Packs 1, 2, 4, 5 are pillar-agnostic.** The identical scripts run unchanged against HCM, FSCM, and Campus Solutions databases. Run the kit once per database instance.
+- **Pack 3 (functional setup) generates itself.** Instead of hardcoding hundreds of setup-table names per pillar, script 03 derives the complete setup-table inventory from the metadata (records keyed by SETID or BUSINESS_UNIT), then emits the extract statements. Anchor lists for the highest-value known tables are included per pillar, each guarded by an existence check against your PSRECDEFN.
+
+## How to run
+
+1. Identify your instances (typically separate databases): HCM, FSCM, CS. Also locate the delivered DEMO database for each if retained — it enables formal customization compare later.
+2. Run against a READ-ONLY reporting replica where available. All scripts are pure SELECTs.
+3. Run `00_discovery.sql` first per instance; review, then run packs in order.
+4. Export each result set to CSV named `<instance>_<pack>_<object>.csv`, e.g. `HCM_P1_PSRECDEFN.csv`. UTF-8, header row, pipe or comma delimited (pipe preferred — PeopleSoft descriptions contain commas).
+5. Complete `extract_manifest_template.csv` — one row per file with row count and run timestamp. The manifest is required for intake to Databricks.
+6. Land everything in the agreed Databricks location. Do not email files.
+
+## Sensitivity guide
+
+| Pack | Contents | Sensitivity |
+|---|---|---|
+| 1 Structure | Table/page/menu/navigation metadata | None — no business data |
+| 2 Logic & process | Code, SQL, process & approval definitions | Low — logic may reveal business rules; no person data |
+| 3 Setup | Configuration values (departments, job codes, chartfields, terms) | Low — organizational reference data; no person-level rows |
+| 3d Security | Roles, permissions, user role assignments, trees | Moderate — includes user IDs; treat as INTERNAL |
+| 4 Usage | Process/query/login telemetry (aggregated by default) | Moderate — includes user IDs; aggregates preferred |
+| 5 Customization | Metadata rows changed by non-Oracle operators | None — metadata only |
+
+No pack extracts employee, payroll, student, or supplier transactional rows. Master/transactional data conversion is a separate, later exercise with its own governance.
+
+## Practical cautions
+
+- `PSPRCSRQST` (process history) is routinely purged — extract it NOW and consider extending retention; it is the single best "what actually runs" source.
+- Query execution logging (`PSQRYEXECLOG`) and Performance Monitor (`PSPMTRANSHIST`) may not be enabled. If absent, enable prospectively — 60 days of telemetry is worth having before design workshops.
+- PeopleCode source in `PSPCMPROG` is stored tokenized. The reliable export path is Application Designer: build a project of all PeopleCode objects and use Copy Project to File; open-source decoders are an alternative. Script 02 still extracts the PeopleCode *inventory* (which objects have code, size, last update) via SQL.
+- Oracle syntax is used (BITAND, TRUNC, SYSDATE). SQL Server equivalents noted inline where they differ.
+- Some anchor table names vary by release/module licensing. Every anchor list begins with an existence check — run it, extract what exists, note what doesn't.
+
+## File list
+
+- `00_discovery.sql` — instance identification, versions, object counts, table-family discovery
+- `01_pack1_structure.sql` — records, fields, pages, components, menus, portal navigation, translate values
+- `02_pack2_logic_process.sql` — PeopleCode inventory, SQL objects, App Engine, processes/jobs, queries, AWE approvals, legacy workflow, Integration Broker
+- `03_pack3_setup_generator.sql` — self-generating setup-table inventory + extract statement generator
+- `03a_anchors_hcm.sql` / `03b_anchors_fscm.sql` / `03c_anchors_campus.sql` — per-pillar anchor tables
+- `03d_security_trees.sql` — roles, permission lists, page access, user assignments, trees, dept security
+- `04_pack4_usage.sql` — process/query/login/IB telemetry, aggregated
+- `05_pack5_customization.sql` — non-PPLSOFT sweep across all object types, project history, DEMO-compare notes
+- `extract_manifest_template.csv`
