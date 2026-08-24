@@ -1,0 +1,136 @@
+{
+  "contractVersion": "1.0",
+  "note": "Machine-readable Import Review contract. This file is the single source of truth for field keys, required-ness, and allowed values. scripts/validate_stage_ready.py reads it. Keep import-contract.md aligned with it; when they disagree, this file wins.",
+  "limits": {
+    "maxFileBytes": 8388608,
+    "allowedExtensions": [".csv", ".xlsx"],
+    "headerRow": 1,
+    "dataWorksheetIndex": 0,
+    "oneFamilyPerFile": true
+  },
+  "universalFields": {
+    "title": {
+      "required": true,
+      "rule": "Concise, unique, human-readable. Never blank."
+    },
+    "description": {
+      "required": false,
+      "rule": "Compact source reference plus context that must persist on the created record. Recommended: 'Source: <file> | <locator> | <short factual context>'."
+    },
+    "classification": {
+      "required": false,
+      "defaultsTo": "INTERNAL",
+      "enum": ["PUBLIC", "INTERNAL", "CONFIDENTIAL", "RESTRICTED", "PAYROLL_SENSITIVE", "SECURITY_SENSITIVE"]
+    },
+    "workstreamId": {
+      "required": false,
+      "rule": "Actual Program System of Record workstream UUID only. Never a workstream name. Never inferred or fabricated. Leave blank and flag when unconfirmed.",
+      "format": "uuid"
+    }
+  },
+  "families": {
+    "legacy_system": {
+      "purpose": "INVENTORY",
+      "fileNameExample": "<run-name>-legacy-systems-import.xlsx",
+      "titleUsually": "systemName",
+      "fields": {
+        "systemName": { "required": true },
+        "systemCategory": { "required": true, "enum": ["PEOPLESOFT", "BOLT_ON", "SHADOW", "INTEGRATION", "OTHER"] },
+        "businessOwner": { "required": true, "rule": "As stated by the source. Do not guess." },
+        "technicalOwner": { "required": false, "rule": "Only when stated." },
+        "lifecycleStatus": { "required": true, "enum": ["ACTIVE", "DECOMMISSION_PLANNED", "REPLACED", "UNKNOWN"] },
+        "dataDomains": { "required": false, "rule": "Semicolon-separated factual domains." },
+        "criticality": { "required": true, "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
+        "owningTeam": { "required": false, "rule": "Source text only; not a governance assignment." },
+        "owningPillar": { "required": false, "rule": "Source text only; not a governance assignment." }
+      }
+    },
+    "legacy_object": {
+      "purpose": "INVENTORY",
+      "fileNameExample": "<run-name>-legacy-objects-import.xlsx",
+      "titleUsually": "objectName",
+      "fields": {
+        "objectName": { "required": true },
+        "objectType": { "required": true, "enum": ["TABLE", "MODULE", "REPORT", "INTERFACE", "EXTRACT", "CONFIGURATION", "OTHER"] },
+        "systemName": { "required": true, "rule": "Confirmed source system." },
+        "businessPurpose": { "required": true, "rule": "Factual purpose, not a future-state recommendation." },
+        "disposition": { "required": true, "enum": ["MIGRATE", "REPLACE", "RETIRE", "RETAIN", "ASSESS"] },
+        "dataSensitivity": { "required": true, "enum": ["PUBLIC", "INTERNAL", "CONFIDENTIAL", "RESTRICTED"] },
+        "owningTeam": { "required": false, "rule": "Source text only." },
+        "governanceTier": { "required": false, "enum": ["TIER_1", "TIER_2", "TIER_3", "TIER_4", "TIER_5"], "rule": "Only when explicitly stated." }
+      }
+    },
+    "shadow_system": {
+      "purpose": "INVENTORY",
+      "fileNameExample": "<run-name>-shadow-systems-import.xlsx",
+      "titleUsually": "systemName",
+      "fields": {
+        "systemName": { "required": true, "rule": "Confirmed locally managed or unofficial system." },
+        "businessFunction": { "required": true },
+        "businessOwner": { "required": true, "rule": "Stated owner. Do not infer from a diagram lane alone." },
+        "dataDomains": { "required": true },
+        "riskLevel": { "required": true, "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
+        "targetDisposition": { "required": true, "enum": ["MIGRATE", "REPLACE", "RETIRE", "RETAIN_PENDING_REVIEW"] },
+        "owningTeam": { "required": false, "rule": "Source text only." }
+      }
+    },
+    "crosswalk_domain": {
+      "purpose": "INVENTORY",
+      "fileNameExample": "<run-name>-crosswalk-domains-import.xlsx",
+      "titleUsually": "domainName",
+      "fields": {
+        "domainName": { "required": true },
+        "sourceSystem": { "required": true, "rule": "Confirmed legacy/source system." },
+        "targetDomain": { "required": true, "rule": "Explicitly documented target domain only. Do not invent a target mapping." },
+        "mappingStatus": { "required": true, "enum": ["NOT_STARTED", "IN_PROGRESS", "MAPPED", "EXCEPTION"] },
+        "mappingOwner": { "required": true, "rule": "Stated accountable person or group. Do not assume." },
+        "exceptionNotes": { "required": false }
+      }
+    },
+    "requirement": {
+      "purpose": "REQUIREMENTS",
+      "fileNameExample": "<run-name>-requirements-import.xlsx",
+      "titleUsually": "requirementId + short label",
+      "fields": {
+        "requirementId": { "required": true, "rule": "Stable source identifier. Propose an ID only on explicit user instruction, and flag it." },
+        "requirementText": { "required": true, "rule": "Complete, normalized requirement statement preserving source intent." },
+        "requirementType": { "required": true, "enum": ["BUSINESS", "FUNCTIONAL", "TECHNICAL", "REGULATORY", "REPORTING", "DATA"] },
+        "priority": { "required": true, "enum": ["MUST", "SHOULD", "COULD"] },
+        "fitGapDisposition": { "required": true, "enum": ["STANDARD", "CONFIGURATION", "CUSTOMIZATION", "WORKAROUND", "GAP"], "rejectedValues": ["NOT_ASSESSED"], "rule": "NOT_ASSESSED exists in the record schema but is REJECTED by staging. Unassessed requirements go to the review pack, never to a stage-ready row." },
+        "vendorEvidence": { "required": false, "requiredBeforeApproval": true, "rule": "Documented vendor/demo/RFP evidence only. Never invented." },
+        "gapImpact": { "required": false, "rule": "Documented impact only." },
+        "advisoryBodies": { "required": false, "rule": "Consultation input only. Never encode advisory bodies as approvers." }
+      }
+    },
+    "raid_item": {
+      "purpose": "RAID",
+      "fileNameExample": "<run-name>-raid-import.xlsx",
+      "titleUsually": "concise RAID title",
+      "fields": {
+        "category": { "required": true, "enum": ["RISK", "ASSUMPTION", "ISSUE", "DEPENDENCY"] },
+        "severity": { "required": true, "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
+        "likelihood": { "required": false, "enum": ["LOW", "MEDIUM", "HIGH"] },
+        "impactDescription": { "required": false },
+        "mitigation": { "required": false, "requiredBeforeApproval": true, "rule": "Existing response plan only. Do not manufacture one." },
+        "dueDate": { "required": false, "format": "date" },
+        "isOpen": { "required": false, "format": "boolean" }
+      }
+    }
+  },
+  "formats": {
+    "date": { "pattern": "^\\d{4}-\\d{2}-\\d{2}$", "rule": "ISO YYYY-MM-DD" },
+    "boolean": { "allowed": ["true", "false", "yes", "no", "1", "0"] },
+    "uuid": { "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" }
+  },
+  "notStageable": [
+    "business_process",
+    "configuration_object",
+    "decision",
+    "meeting",
+    "milestone",
+    "policy",
+    "evidence_link",
+    "record_link",
+    "approval_request"
+  ]
+}
