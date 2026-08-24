@@ -1,2 +1,17 @@
-file_name,instance,pack,source_object,row_count,extracted_at,extracted_by,notes
-HCM_P1_PSRECDEFN.csv,HCM,1,PSRECDEFN,,,,
+file_name|instance|pack|source_object|row_count_expected|row_count_actual|classification|contains_user_ids|extract_window_start|extract_window_end|extracted_at|extracted_by|delimiter|encoding|truncated_flag|notes
+HCM_P0_RUN_HEADER.csv|HCM|0|RUN_HEADER|1||INTERNAL|N|||2026-08-24|||pipe|UTF-8|N|One row per extract run; land first
+HCM_P1_PSRECDEFN.csv|HCM|1|PSRECDEFN|||PUBLIC_INTERNAL|N|||2026-08-24|||pipe|UTF-8|N|
+HCM_P1_PSRECFIELD.csv|HCM|1|PSRECFIELD|||PUBLIC_INTERNAL|N|||2026-08-24|||pipe|UTF-8|N|Carries EDITTABLE lineage - required
+HCM_P1_PSPNLFIELD_part1.csv|HCM|1|PSPNLFIELD|||PUBLIC_INTERNAL|N|||2026-08-24|||pipe|UTF-8|N|Slice 1 of 3 - PNLNAME < H
+HCM_P2_PSSQLTEXTDEFN.csv|HCM|2|PSSQLTEXTDEFN|||INTERNAL|N|||2026-08-24|||pipe|UTF-8|N|CHECK LONG truncation before signing off
+HCM_P2C_APPROVAL_ROUTES.csv|HCM|2c|PS_EOAW_*|||INTERNAL|Y|||2026-08-24|||pipe|UTF-8|N|Derived join - see 02c section 2c.6
+HCM_P2D_INTEGRATION_INVENTORY.csv|HCM|2d|PSOPERATION|||INTERNAL|N|||2026-08-24|||pipe|UTF-8|N|Derived join - see 02d section 2d.4
+HCM_P3_SETUP_INVENTORY.csv|HCM|3|PSRECDEFN|||INTERNAL|N|||2026-08-24|||pipe|UTF-8|N|Generator output - drives the P3 file list
+HCM_P3_SET_CNTRL_REC.csv|HCM|3|PS_SET_CNTRL_REC|||INTERNAL|N|||2026-08-24|||pipe|UTF-8|N|Required to interpret every SETID-keyed file
+HCM_P3_ACCT_CD_TBL.csv|HCM|3|PS_ACCT_CD_TBL|||INTERNAL|N|||2026-08-24|||pipe|UTF-8|N|Payroll to GL seam - reconcile against FSCM
+HCM_P3I_ACCESS_MATRIX.csv|HCM|3i|PSAUTHITEM|||INTERNAL_RESTRICTED|Y|||2026-08-24|||pipe|UTF-8|N|Derived join - see 03i section 3i.3
+HCM_P4_PSPRCSRQST.csv|HCM|4|PSPRCSRQST|||INTERNAL_RESTRICTED|Y|2025-08-24|2026-08-24|2026-08-24|||pipe|UTF-8|N|EXTRACT FIRST - purged on schedule
+HCM_P5_CUSTOM_OBJECTS.csv|HCM|5|PSRECDEFN|||PUBLIC_INTERNAL|N|||2026-08-24|||pipe|UTF-8|N|
+HCM_P0_COMPLETENESS.csv|HCM|0|SCORECARD|9||INTERNAL|N|||2026-08-24|||pipe|UTF-8|N|Land last; review before analysis begins
+FSCM_P0_RUN_HEADER.csv|FSCM|0|RUN_HEADER|1||INTERNAL|N|||2026-08-24|||pipe|UTF-8|N|
+CS_P0_RUN_HEADER.csv|CS|0|RUN_HEADER|1||INTERNAL|N|||2026-08-24|||pipe|UTF-8|N|
