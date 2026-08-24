@@ -10,6 +10,7 @@ Program operations:
 - `raid-capture` — risks, assumptions, issues, dependencies as records
 - `decision-drafting` — decision records with options, rationale, standard-vs-custom flag
 - `change-management` — change impacts, stakeholder analysis, communications, readiness, Change Network, and training curriculum
+- `governance-navigator` — chain of command, escalation paths, and who owns/decides what across the program's committees, workstreams, and pillar leads
 
 Conversion discovery (works from the SharePoint extract library, Packs 1–5):
 - `peoplesoft-metadata-reader` — foundational: inventories, usage ranking, human translation
