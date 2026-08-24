@@ -6,6 +6,7 @@ ERP FORWARD program skills. Install by adding this repo as a plugin marketplace 
 ## Skills
 
 Program operations:
+- `start-here` — orientation: what these skills do, which one to reach for, and how to ask
 - `status-reporting` — workstream/program status and steering packets
 - `raid-capture` — risks, assumptions, issues, dependencies as records
 - `decision-drafting` — decision records with options, rationale, standard-vs-custom flag

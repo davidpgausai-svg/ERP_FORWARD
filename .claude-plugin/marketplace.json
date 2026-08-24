@@ -9,8 +9,8 @@
     {
       "name": "erp-program",
       "source": "./plugins/erp-program",
-      "version": "1.3.0",
-      "description": "ERP FORWARD program skills: status reporting, RAID capture, decision drafting, change management, governance navigation, and the PeopleSoft conversion discovery toolkit (metadata, snapshots, customizations, security, integrations, reporting, process maps).",
+      "version": "1.4.0",
+      "description": "ERP FORWARD program skills: orientation (start-here), status reporting, RAID capture, decision drafting, change management, governance navigation, and the PeopleSoft conversion discovery toolkit (metadata, snapshots, customizations, security, integrations, reporting, process maps).",
       "author": { "name": "ERP FORWARD" },
       "keywords": ["erp", "peoplesoft", "conversion", "program-management"]
     }
