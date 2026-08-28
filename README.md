@@ -13,6 +13,7 @@ Program operations:
 - `change-management` — change impacts, stakeholder analysis, communications, readiness, Change Network, and training curriculum
 - `governance-navigator` — chain of command, escalation paths, and who owns/decides what across the program's committees, workstreams, and pillar leads
 - `source-to-import-workbooks` — turn DOCX/PDF/Visio discovery documents into stage-ready Import Review workbooks plus a review pack of extraction evidence
+- `process-and-decision-modeling` — draft future-state BPMN 2.0 process maps and DMN 1.3 policy decision tables against the record layer, with conflict checks before submission
 
 Conversion discovery (works from the SharePoint extract library, Packs 1–5):
 - `peoplesoft-metadata-reader` — foundational: inventories, usage ranking, human translation

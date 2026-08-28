@@ -9,8 +9,8 @@
     {
       "name": "erp-program",
       "source": "./plugins/erp-program",
-      "version": "1.5.0",
-      "description": "ERP FORWARD program skills: orientation (start-here), status reporting, RAID capture, decision drafting, change management, governance navigation, source-to-import workbook building, and the PeopleSoft conversion discovery toolkit (metadata, snapshots, customizations, security, integrations, reporting, process maps).",
+      "version": "1.6.0",
+      "description": "ERP FORWARD program skills: orientation (start-here), status reporting, RAID capture, decision drafting, change management, governance navigation, source-to-import workbook building, BPMN/DMN process and decision modeling, and the PeopleSoft conversion discovery toolkit (metadata, snapshots, customizations, security, integrations, reporting, process maps).",
       "author": { "name": "ERP FORWARD" },
       "keywords": ["erp", "peoplesoft", "conversion", "program-management"]
     }
