@@ -1,6 +1,6 @@
 ---
 name: process-map-drafting
-description: Draft current-state business process maps by combining PeopleSoft extract evidence (approval routes, navigation, security, usage) with workflow documents and SME input. Use this whenever the user asks to map a process, mentions current-state or future-state workflows, swimlanes, "how does X work today", business process documentation, or prepares for design workshops — for any pillar: HR, payroll, finance, student, supply chain.
+description: Draft current-state business process maps by combining PeopleSoft extract evidence (approval routes, navigation, security, usage) with workflow documents and SME input. Use this whenever the user asks to map a process, mentions current-state or future-state workflows, swimlanes, "how does X work today", business process documentation, or prepares for design workshops — for any pillar — HR, payroll, finance, student, supply chain.
 ---
 
 # Process Map Drafting
@@ -13,9 +13,9 @@ Read `../../references/extract-library-guide.md`. The existing current-state doc
 
 1. **Scope one process at a time** (e.g., "staff requisition to hire", "requisition to PO", "student service-indicator release"). Confirm scope and population with the user — processes differ by population (faculty vs staff vs student worker), and a map that ignores that gets rejected in validation.
 2. **Assemble the system evidence**:
-   - AWE approval routes (P2 EOAW*): stages, paths, steps, criteria, user lists — this IS the approval half of the process, already sequenced.
+   - AWE approval routes (P2c EOAW*, pre-joined as `_P2C_APPROVAL_ROUTES.csv`): stages, paths, steps, criteria, user lists — this IS the approval half of the process, already sequenced.
    - Navigation + components (P1): which screens the process touches, as breadcrumbs.
-   - Security (P3d): which roles/departments can perform each step — your actor candidates per swimlane.
+   - Security (P3i, `_P3I_ACCESS_MATRIX.csv`): which roles/departments can perform each step — your actor candidates per swimlane.
    - Telemetry (P4): volumes and cadence — how often this process actually runs.
    - Setup (P3): condition-bearing config (action reasons, service indicators, requisition types) that branches the flow.
 3. **Draft the map** in the house structure: numbered steps with actor / system / action / trigger; a handoffs table (trigger mechanism, SLA if visible, known pain points); a systems inventory. Mark every step with its evidence source — and mark the gaps explicitly: `[HUMAN STEP — VALIDATE]` wherever the system evidence shows a discontinuity (a status changes with no system actor visible; a document appears from nowhere). Those markers are the SME interview agenda.

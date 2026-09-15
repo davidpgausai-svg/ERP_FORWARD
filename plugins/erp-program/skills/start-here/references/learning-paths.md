@@ -1,6 +1,6 @@
 # Learning Paths — ERP FORWARD Skills
 
-**How to use this file.** It holds the *teaching* — who should learn what, in what order, and how to phrase a request well. It does NOT hold the authoritative catalog: the live available-skills list in the session does. Skills are grouped into families below, so a newly added skill usually slots into an existing family and this file stays useful without edits. Last reviewed: 2026-08.
+**How to use this file.** It holds the *teaching* — who should learn what, in what order, and how to phrase a request well. It does NOT hold the authoritative catalog: the live available-skills list in the session does. Skills are grouped into families below, so a newly added skill usually slots into an existing family and this file stays useful without edits. Last reviewed: 2026-09.
 
 ## Families (stable groupings)
 
@@ -14,7 +14,9 @@
 
 **Orientation** — this skill; the way in.
 
-As of the last review, the program plugin carried skills across all five families, including: status-reporting, raid-capture, decision-drafting, governance-navigator, peoplesoft-metadata-reader, snapshot-diff, customization-analysis, security-access-analysis, integration-discovery, report-rationalization, process-map-drafting, and change-management. Treat this as illustrative history, not a checklist — always enumerate live.
+As of the last review, the program plugin carried skills across all five families, including: start-here, status-reporting, raid-capture, decision-drafting, governance-navigator, peoplesoft-metadata-reader, snapshot-diff, customization-analysis, security-access-analysis, integration-discovery, report-rationalization, process-map-drafting, process-and-decision-modeling, source-to-import-workbooks, erp-module-build-guide, and change-management. Treat this as illustrative history, not a checklist — always enumerate live.
+
+**Discovery without a DBA.** The metadata-reader skill has three entry modes — extract CSVs, PS Query downloads, and screenshots of PeopleSoft pages — and a runbook for producing the extracts. A functional analyst with only page access can start on day one; the skill says what a screenshot can and cannot prove, and what to capture next.
 
 ## Role-based starting points
 
@@ -37,7 +39,9 @@ As of the last review, the program plugin carried skills across all five familie
 Weak prompts get generic answers because they omit the three things that steer the work: what you have, what you're doing, and what you need back.
 
 - Weak: "Can you help with security?"
-  Strong: "I've got the security extract from the July HCM snapshot in our SharePoint library. I need to know which departments actually process hires, to inform supervisory-org design."
+  Strong: "I've got the security extract (`HCM_P3I_ACCESS_MATRIX.csv`) from the August HCM snapshot. I need to know which departments actually process hires, to inform supervisory-org design."
+- Weak: "Can you look at PeopleSoft for me?"
+  Strong: "I don't have database access, but I can open Set Up HCM. Here are screenshots of our Department table and Action Reasons with the breadcrumbs showing — tell me what you can confirm from these, and what I should capture or ask the DBA for next."
 - Weak: "Write a status report."
   Strong: "Draft this week's Finance workstream status — we closed the chart-of-accounts mapping review, the vendor extract is still late, and I need the tenant-refresh decision on the steering agenda."
 - Weak: "What do I do about this risk?"
