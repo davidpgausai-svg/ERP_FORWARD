@@ -1,6 +1,6 @@
 ---
 name: security-access-analysis
-description: Analyze PeopleSoft security from Pack 3d extracts — roles, permission lists, page access, user assignments, trees — to answer who-can-do-what, find segregation-of-duties conflicts, and inform target-ERP role design. Use this whenever the user mentions security roles, access, permissions, SoD, "who can do X", "who does X", role design, supervisory orgs, or asks how work is actually distributed across departments.
+description: Analyze PeopleSoft security from Pack 3i extracts (`_P3I_` files — roles, permission lists, page access, user assignments, trees) or from screenshots of Roles and Permission List pages, to answer who-can-do-what, find segregation-of-duties conflicts, and inform target-ERP role design. Use this whenever the user mentions security roles, access, permissions, SoD, "who can do X", "who does X", role design, supervisory orgs, or asks how work is actually distributed across departments.
 ---
 
 # Security Access Analysis
@@ -11,7 +11,7 @@ Read `../../references/extract-library-guide.md`; the access chain is PSROLEUSER
 
 ## Method
 
-1. **Build the access matrix**: user → role → permission list → component, joined to human-readable breadcrumbs (via PSPRSMDEFN) and to departments (via PSOPRDEFN/job data references in P3d where present). Cache this as a CSV — every question below reads from it.
+1. **Build the access matrix**: user → role → permission list → component, joined to human-readable breadcrumbs (via PSPRSMDEFN) and to departments (via PSOPRDEFN/job data references in P3i where present). The kit pre-builds this join as `_P3I_ACCESS_MATRIX.csv` (§3i.3) — start there if it landed; otherwise build it from the P3i tables and cache it as a CSV. Every question below reads from it.
 2. **Answer the design questions**:
    - Who can perform [transaction]? Ranked by department — this reveals centralized vs distributed operating models per process, which is a top design decision for the new ERP.
    - Role hygiene: roles with one user, users with dozens of roles, permission lists granting unused components (join P4 telemetry), orphaned roles. Each is a cleanup candidate BEFORE role mapping — migrating messy security reproduces messy security.

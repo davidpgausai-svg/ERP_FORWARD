@@ -1,7 +1,7 @@
 {
   "name": "erp-program",
-  "version": "1.7.0",
-  "description": "ERP FORWARD program skills for the PeopleSoft-to-cloud-ERP transformation: orientation (start-here), program operations (status, RAID, decisions, change management, governance navigation), source-to-import workbook building for the Import Review module, BPMN/DMN process and decision modeling against the record layer, ERP module build guides (Word docx + optional Visio swimlane), and conversion discovery (PeopleSoft metadata reading, snapshot diffing, customization/security/integration/reporting analysis, process-map drafting).",
+  "version": "1.8.0",
+  "description": "ERP FORWARD program skills for the PeopleSoft-to-cloud-ERP transformation: orientation (start-here), program operations (status, RAID, decisions, change management, governance navigation), source-to-import workbook building for the Import Review module, BPMN/DMN process and decision modeling against the record layer, ERP module build guides (Word docx + optional Visio swimlane), and conversion discovery with a bundled PeopleSoft SQL extract kit (metadata reading from extracts, PS Query or page screenshots; snapshot diffing; customization/security/integration/reporting analysis; process-map drafting).",
   "author": { "name": "ERP FORWARD" },
   "homepage": "https://github.com/davidpgausai-svg/ERP_FORWARD",
   "repository": "https://github.com/davidpgausai-svg/ERP_FORWARD"
