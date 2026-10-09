@@ -22,13 +22,21 @@ Misclassification matters: a risk logged as an issue triggers firefighting; an i
 
 ## Draft the record
 
-For each item capture: title (specific — "Vendor extract delayed 3 weeks", never "data concerns"); description with the observable facts; impact (what breaks, in program terms: dates, payroll, go-live scope); probability for risks (H/M/L with a reason); proposed owner (role if no name available); proposed mitigation or next action; source (meeting, document, date). Cite the source — an unattributed risk gets deleted in the next log scrub.
+For each item capture: title (specific — "Vendor extract delayed 3 weeks", never "data concerns"); description with the observable facts; impact (what breaks, in program terms: dates, payroll, go-live scope); probability for risks (H/M/L with a reason); suggested owner role or team; proposed mitigation or next action; source (meeting, document, date). Cite the source — an unattributed risk gets deleted in the next log scrub.
 
-Check for duplicates first: search existing RAID items (record layer `record.search`, or the current RAID log file) before creating. If a similar item exists, propose updating it instead — duplicate risks fragment ownership.
+## Confirm an owner
+
+A role or team is a suggestion, not an assigned owner. Never infer a person from a role, team, source author, or similar record.
+
+When connected to MCP, resolve a named person with `users_list({query: "<name, title, team, or workstream>"})`. It returns active people in the signed-in organization; use `workstream_list` first if you need a workstream ID, then pass that ID as `workstreamId` to narrow the search. If there are multiple plausible matches, ask the user which person they mean. Show the candidate's name and title/team, then ask whether to assign that person.
+
+Only after an explicit yes, pass that candidate's `id` as `ownerId` to `record_create_draft`. Do not put a proposed owner in `payload` or another record field. If nobody is confirmed, omit `ownerId` so the capturing user remains Owner, and append this exact line at the end of the description: `Suggested owner: <role or team> (not confirmed).`
+
+Check for duplicates first: call `record_search` with `search: "<RAID title or key terms>"`, or search the current RAID log file. If a similar item exists, propose updating it instead — duplicate risks fragment ownership.
 
 ## Landing the output
 
-Per `../../references/output-conventions.md`: write raid_item records as DRAFT via MCP when connected (schema.get first), otherwise append to the RAID log file/CSV in the standard finding format. Present the drafts to the user compactly for confirmation before submitting for review. Severity-1 items (payroll, go-live date, legal/union exposure): tell the user explicitly this looks escalation-worthy and to whom it should go.
+Per `../../references/output-conventions.md`: call `schema_get` with `recordType: "raid_item"` first, then create a `raid_item` DRAFT with `record_create_draft` when connected; otherwise append to the RAID log file/CSV in the standard finding format. Confirm the assigned Owner in the response. State that the record remains a draft and a human must submit it for review in ERP Forward; do not submit it through MCP. Severity-1 items (payroll, go-live date, legal/union exposure): tell the user explicitly this looks escalation-worthy and to whom it should go.
 
 ---
 
