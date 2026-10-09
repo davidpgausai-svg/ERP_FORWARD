@@ -83,7 +83,7 @@ Delivery is a train-the-trainer model: UM and MUHC staff deliver instructor-led 
 
 ## Landing the output
 
-Per `../../references/output-conventions.md`. Change impacts, communications, and curriculum lines are inventory rows destined for the program's Smartsheet trackers, so produce them as CSV with exactly the field names above, in that order, so they import without rework. Narrative deliverables (survey readouts, strategy sections, leadership briefs) are markdown. When the record layer is connected, call `schema.get` first and write as DRAFT.
+Per `../../references/output-conventions.md`. Change impacts, communications, and curriculum lines are inventory rows destined for the program's Smartsheet trackers, so produce them as CSV with exactly the field names above, in that order, so they import without rework. Narrative deliverables (survey readouts, strategy sections, leadership briefs) are markdown. When the record layer is connected, call `schema_get` first and write as DRAFT.
 
 Nothing here is approved by you. Change impacts require SME validation, communications require content owner and sender approval, curriculum requires SME sign-off. Hand over drafts and name who has to bless them.
 

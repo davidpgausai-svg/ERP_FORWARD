@@ -4,7 +4,7 @@ Every skill in this plugin produces work that must outlive the chat session. Not
 
 ## Where outputs land
 
-1. **Record layer connected (preferred).** When the ERP Record Layer MCP connector is available, write structured outputs there: call `schema.get` for the entity type first (never guess field names — the schema registry is authoritative), create records as DRAFT, attach source citations (extract file + snapshot date, or document name + section), and submit for review when the human confirms. Never attempt to approve anything; approvals are human-only by design.
+1. **Record layer connected (preferred).** When the ERP Record Layer MCP connector is available, write structured outputs there: call `schema_get` with the target `recordType` first (never guess field names — the schema registry is authoritative), create records as DRAFT, attach source citations (extract file + snapshot date, or document name + section), and submit for review when the human confirms. Never attempt to approve anything; approvals are human-only by design.
 2. **Record layer not connected (interim).** Produce the output as a file — markdown for narrative deliverables, CSV for inventories — and save it to the extract library's `/analysis/<topic>/` folder (or the session's working folder if the library isn't connected). Name it `<topic>_<instance>_<snapshot-date>.md|csv`. Structure CSVs so they can be imported into the record layer later without rework.
 
 ## Standard finding format

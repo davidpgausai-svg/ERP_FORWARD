@@ -24,11 +24,16 @@ Misclassification matters: a risk logged as an issue triggers firefighting; an i
 
 For each item capture: title (specific — "Vendor extract delayed 3 weeks", never "data concerns"); description with the observable facts; impact (what breaks, in program terms: dates, payroll, go-live scope); probability for risks (H/M/L with a reason); proposed owner (role if no name available); proposed mitigation or next action; source (meeting, document, date). Cite the source — an unattributed risk gets deleted in the next log scrub.
 
-Check for duplicates first: search existing RAID items (record layer `record.search`, or the current RAID log file) before creating. If a similar item exists, propose updating it instead — duplicate risks fragment ownership.
+Check for duplicates before creating. When the record layer is connected, call `record_search` with `type: "raid_item"` and a distinctive `search` phrase. If a similar item exists, propose updating it instead — duplicate risks fragment ownership.
 
 ## Landing the output
 
-Per `../../references/output-conventions.md`: write raid_item records as DRAFT via MCP when connected (schema.get first), otherwise append to the RAID log file/CSV in the standard finding format. Present the drafts to the user compactly for confirmation before submitting for review. Severity-1 items (payroll, go-live date, legal/union exposure): tell the user explicitly this looks escalation-worthy and to whom it should go.
+When the record layer is connected, use these MCP tools in this order:
+1. Call `schema_get` with `recordType: "raid_item"` and use its returned schema. The current schema requires `payload.category` (`RISK`, `ASSUMPTION`, `ISSUE`, or `DEPENDENCY`) and `payload.severity` (`LOW`, `MEDIUM`, `HIGH`, or `CRITICAL`) for review. Use only writable payload fields from the returned schema; put details that have no supported field, such as a proposed owner, in the description rather than inventing payload keys.
+2. Call `record_search` with `type: "raid_item"` and `search: "<distinctive phrase>"` to check for a duplicate.
+3. If no similar record exists, call `record_create_draft` with `recordType: "raid_item"`, `title`, `description`, and the schema-shaped `payload`. Set `placement` to `PARENT` or `CHILD` as appropriate; for `CHILD`, include the resolved `parentRecordId`. Include `scope` and `workstreamId` when the intended placement is known.
+
+Otherwise, follow `../../references/output-conventions.md` and append to the RAID log file/CSV in the standard finding format. Present drafts compactly for confirmation before anyone submits them for review. Severity-1 items (payroll, go-live date, legal/union exposure): tell the user explicitly this looks escalation-worthy and to whom it should go.
 
 ---
 
