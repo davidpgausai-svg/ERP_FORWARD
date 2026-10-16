@@ -13,6 +13,7 @@ Program operations:
 - `governance-navigator` — chain of command, escalation paths, and who owns/decides what across the program's committees, workstreams, and pillar leads
 - `source-to-import-workbooks` — turn DOCX/PDF/Visio discovery documents into stage-ready Import Review workbooks plus a review pack of extraction evidence
 - `process-and-decision-modeling` — draft future-state BPMN 2.0 process maps and DMN 1.3 policy decision tables against the record layer, with conflict checks before submission
+- `process-flow-board` — set up a shared drag-and-drop swimlane board where a workstream team sketches a future-state process (parallel paths, decisions, merges), then build the business process package from it once the flow is locked
 - `erp-module-build-guide` — produce a stage-by-stage ERP module build guide (Word docx, optionally with an editable Visio swimlane diagram) that tells someone in front of a blank tenant exactly which tasks to run and in what order
 
 Conversion discovery (works from PeopleSoft extract-kit output — Packs 0–6 — or, without database access, from PS Query downloads and screenshots of PeopleSoft pages):
