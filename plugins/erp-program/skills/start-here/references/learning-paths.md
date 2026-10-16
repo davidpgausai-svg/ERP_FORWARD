@@ -1,6 +1,6 @@
 # Learning Paths — ERP FORWARD Skills
 
-**How to use this file.** It holds the *teaching* — who should learn what, in what order, and how to phrase a request well. It does NOT hold the authoritative catalog: the live available-skills list in the session does. Skills are grouped into families below, so a newly added skill usually slots into an existing family and this file stays useful without edits. Last reviewed: 2026-09.
+**How to use this file.** It holds the *teaching* — who should learn what, in what order, and how to phrase a request well. It does NOT hold the authoritative catalog: the live available-skills list in the session does. Skills are grouped into families below, so a newly added skill usually slots into an existing family and this file stays useful without edits. Last reviewed: 2026-10.
 
 ## Families (stable groupings)
 
@@ -8,13 +8,13 @@
 
 **Discovery and analysis** — understanding the legacy estate from PeopleSoft extracts: reading metadata and inventories, diffing dated snapshots for configuration drift, analyzing customizations, security and access, integrations, and the reporting estate.
 
-**Process and design** — drafting current-state process maps from system evidence plus SME correction, and the design work that follows from them.
+**Process and design** — drafting current-state process maps from system evidence plus SME correction, and the design work that follows from them, including a live shared flow board a workstream team marks up together in a design workshop.
 
 **People and adoption** — change impacts, stakeholder analysis, communications, readiness, the Change Network, and training.
 
 **Orientation** — this skill; the way in.
 
-As of the last review, the program plugin carried skills across all five families, including: start-here, status-reporting, raid-capture, decision-drafting, governance-navigator, peoplesoft-metadata-reader, snapshot-diff, customization-analysis, security-access-analysis, integration-discovery, report-rationalization, process-map-drafting, process-and-decision-modeling, source-to-import-workbooks, erp-module-build-guide, and change-management. Treat this as illustrative history, not a checklist — always enumerate live.
+As of the last review, the program plugin carried skills across all five families, including: start-here, status-reporting, raid-capture, decision-drafting, governance-navigator, peoplesoft-metadata-reader, snapshot-diff, customization-analysis, security-access-analysis, integration-discovery, report-rationalization, process-map-drafting, process-and-decision-modeling, process-flow-board, source-to-import-workbooks, erp-module-build-guide, and change-management. Treat this as illustrative history, not a checklist — always enumerate live.
 
 **Discovery without a DBA.** The metadata-reader skill has three entry modes — extract CSVs, PS Query downloads, and screenshots of PeopleSoft pages — and a runbook for producing the extracts. A functional analyst with only page access can start on day one; the skill says what a screenshot can and cannot prove, and what to capture next.
 
@@ -53,6 +53,7 @@ Three habits worth teaching explicitly: name the file or snapshot you're working
 
 - **Extract lands → analysis → risk → decision.** Read the new snapshot, produce the inventory or findings, capture what's material as a risk, draft the decision it forces.
 - **Process map → gaps → decisions → change impacts.** Draft current state, surface where the target differs, route the design decisions, feed the impacts into change and training.
+- **Workshop → flow board → package.** Seed a shared flow board for the future state, let the team rearrange it live, then build the business process package (and optionally BPMN) once they say the flow is locked.
 - **Stuck → escalate → decide.** Get the chain of command, frame the blocker as a decision with options, route it to the accountable tier.
 - **Week's end → status → steering.** Roll workstream activity into status, promote the unresolved items into decisions the committee can act on.
 

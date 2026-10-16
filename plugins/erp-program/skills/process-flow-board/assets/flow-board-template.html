@@ -1,0 +1,638 @@
+<title>{{PROCESS_NAME}} Flow Board</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: swimlane flow graph. Lanes = rows, stages = columns; steps in one stage run in parallel; arrows are explicit connections. Editor, flow check and open questions below. */
+:root {
+  --bg: #eef1f4;
+  --surface: #ffffff;
+  --lane-tint: #f6f8fa;
+  --ink: #16202a;
+  --muted: #5a6876;
+  --line: #d3dae1;
+  --edge: #7d8b99;
+  --accent: #0d6b67;
+  --accent-soft: #dcefed;
+  --open: #9a5b00;
+  --open-soft: #fbefd9;
+  --gate: #4b3a8f;
+  --gate-soft: #ebe7f8;
+  --sticky: #fff6c9;
+  --sticky-ink: #3d3410;
+  --danger: #a3312b;
+  --display: "Familjen Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #11171d; --surface: #1a232c; --lane-tint: #161e26; --ink: #e5ebf0; --muted: #9aa8b5; --line: #2e3a46; --edge: #7f8f9e;
+  --accent: #4fc2bb; --accent-soft: #163a39; --open: #f0b25a; --open-soft: #3a2b12; --gate: #b7a8f2; --gate-soft: #2a2447;
+  --sticky: #3b3518; --sticky-ink: #f3e8b5; --danger: #f08a83; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #11171d; --surface: #1a232c; --lane-tint: #161e26; --ink: #e5ebf0; --muted: #9aa8b5; --line: #2e3a46; --edge: #7f8f9e;
+  --accent: #4fc2bb; --accent-soft: #163a39; --open: #f0b25a; --open-soft: #3a2b12; --gate: #b7a8f2; --gate-soft: #2a2447;
+  --sticky: #3b3518; --sticky-ink: #f3e8b5; --danger: #f08a83; color-scheme: dark }
+
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1320px; margin: 0 auto; padding-block: 28px 56px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 24px; }
+header { display: grid; gap: 6px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(28px, 4vw, 40px); line-height: 1.1; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--display); font-weight: 700; font-size: 20px; margin: 0; }
+h3 { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin: 0; }
+.sub { color: var(--muted); max-width: 72ch; margin: 0; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 13px; color: var(--muted); }
+.meta b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.notice { font-size: 14px; padding: 10px 14px; border-radius: 6px; background: var(--open-soft); color: var(--ink); display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.connect-bar { background: var(--gate-soft); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; gap: 6px; align-items: center; }
+.gk { font-family: var(--mono); font-weight: 600; color: var(--gate); }
+
+/* Board */
+.board-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.board { display: grid; min-width: max-content; position: relative; }
+svg.edges { position: absolute; left: 0; top: 0; pointer-events: none; z-index: 1; overflow: visible; }
+.edge { fill: none; stroke: var(--edge); stroke-width: 1.5; }
+.edge.sel { stroke: var(--accent); stroke-width: 2.25; }
+.ahp { fill: var(--edge); }
+.ahp.sel { fill: var(--accent); }
+.elabel { font-family: var(--mono); font-size: 11px; fill: var(--gate); paint-order: stroke; stroke: var(--surface); stroke-width: 5px; stroke-linejoin: round; }
+.lane-label { position: sticky; left: 0; z-index: 3; background: var(--surface); border-right: 1px solid var(--line); border-top: 1px solid var(--line); padding: 14px; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); display: flex; align-items: center; width: 132px; box-sizing: border-box; }
+.cell, .gap { border-top: 1px solid var(--line); min-height: 104px; position: relative; }
+.lane-odd { background: var(--lane-tint); }
+.cell { padding: 12px 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 10px; }
+.cell.drop, .gap.drop { background: var(--accent-soft); outline: 2px dashed var(--accent); outline-offset: -3px; }
+.gap.drop::after { content: "New stage"; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) rotate(-90deg); font-family: var(--mono); font-size: 10px; white-space: nowrap; color: var(--accent); }
+.head-label { position: sticky; left: 0; z-index: 3; background: var(--surface); border-right: 1px solid var(--line); width: 132px; }
+.head-cell { padding: 8px; font-family: var(--mono); font-size: 11px; color: var(--muted); text-align: center; }
+.step { position: relative; z-index: 2; width: 176px; box-sizing: border-box; text-align: left; background: var(--surface); border: 1.5px solid var(--line); border-radius: 8px; padding: 10px 12px; cursor: pointer; display: grid; gap: 4px; }
+.step[draggable="true"] { cursor: grab; }
+.step:hover { border-color: var(--accent); }
+.step.selected { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.step.dragging { opacity: .4; }
+.step.target { border-color: var(--gate); box-shadow: 0 0 0 3px var(--gate-soft); }
+.connecting .step { cursor: crosshair; }
+.step:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, .handle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.step .num { font-family: var(--mono); font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; gap: 6px; }
+.step .ttl { font-weight: 600; font-size: 14px; line-height: 1.3; }
+.step .gw { display: grid; gap: 2px; }
+.step .gw span { font-family: var(--mono); font-size: 10.5px; color: var(--gate); background: var(--gate-soft); border-radius: 4px; padding: 1px 5px; justify-self: start; }
+.step .gw span.warn { color: var(--open); background: var(--open-soft); }
+.step .objs { font-size: 12px; color: var(--muted); }
+.handle { position: absolute; right: -11px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; border-radius: 50%; background: var(--surface); border: 1.5px solid var(--edge); color: var(--muted); font-size: 12px; line-height: 19px; text-align: center; cursor: crosshair; }
+.handle:hover { border-color: var(--gate); color: var(--gate); }
+.pill { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; padding: 1px 6px; border-radius: 99px; }
+.pill.open { background: var(--open-soft); color: var(--open); }
+.pill.agreed { background: var(--accent-soft); color: var(--accent); }
+.empty-board { padding: 32px 20px; color: var(--muted); text-align: center; }
+
+/* Lower panels */
+.lower { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 860px) { .lower { grid-template-columns: 1fr; } }
+.side { display: grid; gap: 24px; min-width: 0; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; display: grid; gap: 14px; min-width: 0; }
+.panel-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+label { display: grid; gap: 4px; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+input, textarea, select { font: inherit; font-size: 15px; text-transform: none; letter-spacing: normal; font-weight: 400; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; width: 100%; box-sizing: border-box; }
+textarea { min-height: 72px; resize: vertical; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+@media (max-width: 560px) { .row2, .row3 { grid-template-columns: 1fr; } }
+.btns { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+button.btn { font: inherit; font-size: 14px; font-weight: 500; padding: 7px 12px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+button.btn:hover:not(:disabled) { border-color: var(--accent); }
+button.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+button.btn.gate { color: var(--gate); }
+button.btn.danger { color: var(--danger); }
+button.btn:disabled { opacity: .45; cursor: default; }
+.hint { font-size: 13px; color: var(--muted); margin: 0; }
+.gwbox { border: 1px solid var(--line); border-radius: 8px; padding: 12px; display: grid; gap: 10px; background: var(--gate-soft); }
+.paths { display: grid; gap: 8px; }
+.path { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: 8px; align-items: center; font-size: 14px; }
+.path.in { grid-template-columns: minmax(0, 1fr) auto; }
+.path .to { overflow-wrap: anywhere; }
+.path .to code { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-right: 4px; }
+.path input { font-size: 14px; padding: 6px 8px; }
+.x { background: none; border: 1px solid var(--line); border-radius: 6px; color: var(--muted); cursor: pointer; font: inherit; font-size: 13px; padding: 4px 8px; }
+.x:hover:not(:disabled) { color: var(--danger); border-color: var(--danger); }
+.checks { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.checks li { font-size: 14px; display: grid; grid-template-columns: auto 1fr; gap: 8px; }
+.checks li::before { content: "!"; font-family: var(--mono); font-weight: 600; color: var(--open); background: var(--open-soft); border-radius: 4px; width: 18px; text-align: center; }
+.checks li.ok::before { content: "\2713"; color: var(--accent); background: var(--accent-soft); }
+.checks button { background: none; border: none; padding: 0; font: inherit; color: var(--ink); text-align: left; cursor: pointer; text-decoration: underline; text-decoration-color: var(--line); text-underline-offset: 3px; }
+.stickies { display: grid; gap: 10px; }
+.sticky { background: var(--sticky); color: var(--sticky-ink); border-radius: 4px; padding: 10px 12px; display: grid; gap: 4px; font-size: 14px; }
+.sticky .sref { font-family: var(--mono); font-size: 11px; opacity: .75; }
+.sticky .srow { display: flex; justify-content: space-between; gap: 8px; align-items: start; }
+.sticky button { background: none; border: none; color: inherit; cursor: pointer; font-size: 13px; opacity: .7; padding: 0 2px; }
+.sticky p { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.status { font-size: 12px; color: var(--muted); min-height: 1em; }
+@media (prefers-reduced-motion: no-preference) { .step { transition: border-color .15s, box-shadow .15s; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">ERP Forward · {{WORKSTREAM_NAME}} · Future state</div>
+    <h1>{{PROCESS_NAME}} Flow Board</h1>
+    <p class="sub">Working sketch of the {{PROCESS_NAME}} flow. Steps in the same stage run in parallel. Drag a step to move it, drop it in the gap between stages to create a new stage, and drag the round handle on a step's right edge onto another step to connect them. Click a step to edit it.</p>
+    <div class="meta"><span><b id="m-steps">0</b> steps</span><span><b id="m-stages">0</b> stages</span><span><b id="m-par">0</b> parallel splits</span><span><b id="m-dec">0</b> decisions</span><span><b id="m-merge">0</b> merges</span><span><b id="m-open">0</b> still open</span></div>
+    <div class="legend"><span><span class="gk">+</span> Parallel split: every path runs</span><span><span class="gk">×</span> Decision: one path, chosen by a condition</span><span><span class="gk">&gt;</span> Merge: paths come back together</span></div>
+  </header>
+
+  <div id="notice" class="notice" hidden></div>
+  <div id="connect-bar" class="notice connect-bar" hidden><span id="connect-text"></span><button type="button" class="btn" id="b-connect-cancel">Cancel</button></div>
+
+  <div class="board-scroll"><div id="board" class="board"></div></div>
+
+  <div class="lower">
+    <section class="panel" aria-labelledby="ed-h">
+      <div class="panel-head"><h2 id="ed-h">Step detail</h2><span class="status" id="save-status"></span></div>
+      <div id="editor-empty"><p class="hint">Select a step on the board to edit it, connect it, or branch from it.</p></div>
+      <form id="editor" hidden>
+        <div style="display:grid;gap:12px">
+          <label for="f-title">Step name<input id="f-title" maxlength="80"></label>
+          <div class="row3">
+            <label for="f-lane">Lane (who)<select id="f-lane"></select></label>
+            <label for="f-stage">Stage (when)<select id="f-stage"></select></label>
+            <label for="f-status">Status<select id="f-status"><option value="open">Open</option><option value="agreed">Agreed</option></select></label>
+          </div>
+          <label for="f-detail">What happens<textarea id="f-detail"></textarea></label>
+          <label for="f-objs">Candidate config objects (one per line)<textarea id="f-objs"></textarea></label>
+
+          <div class="gwbox" id="split-box" hidden>
+            <label for="f-split">This step splits into <span id="split-n"></span> paths<select id="f-split"><option value="">Choose how the paths split</option><option value="parallel">+ Parallel: every path runs</option><option value="exclusive">× Decision: one path, based on a condition</option></select></label>
+          </div>
+          <div class="gwbox" id="join-box" hidden>
+            <label for="f-join"><span id="join-n"></span> paths merge into this step<select id="f-join"><option value="">Choose how the paths merge</option><option value="all">Wait for every incoming path</option><option value="any">Continue when the first path arrives</option></select></label>
+          </div>
+
+          <div style="display:grid;gap:8px">
+            <h3>Leads to</h3>
+            <div class="paths" id="paths-out"></div>
+          </div>
+          <div style="display:grid;gap:8px">
+            <h3>Comes from</h3>
+            <div class="paths" id="paths-in"></div>
+          </div>
+
+          <div class="btns">
+            <button type="button" class="btn" id="b-next">Add next step</button>
+            <button type="button" class="btn gate" id="b-branch">Add branch</button>
+            <button type="button" class="btn gate" id="b-connect">Connect to a step</button>
+            <button type="button" class="btn danger" id="b-del">Remove step</button>
+          </div>
+          <div id="del-confirm" class="btns" hidden>
+            <span class="hint">Remove this step and its connections for everyone?</span>
+            <button type="button" class="btn danger" id="b-del-yes">Remove</button>
+            <button type="button" class="btn" id="b-del-no">Keep it</button>
+          </div>
+        </div>
+      </form>
+      <div class="btns"><button type="button" class="btn primary" id="b-add">Add step in a new stage at end</button></div>
+    </section>
+
+    <div class="side">
+      <section class="panel" aria-labelledby="fc-h">
+        <div class="panel-head"><h2 id="fc-h">Flow check</h2></div>
+        <ul class="checks" id="checks"></ul>
+      </section>
+      <section class="panel" aria-labelledby="q-h">
+        <div class="panel-head"><h2 id="q-h">Open questions</h2></div>
+        <form id="q-form" style="display:grid;gap:8px">
+          <label for="q-text">New question or note<textarea id="q-text" placeholder="e.g. {{SAMPLE_QUESTION}}"></textarea></label>
+          <div class="btns"><button type="submit" class="btn primary">Add note</button><span class="hint" id="q-ref"></span></div>
+        </form>
+        <div class="stickies" id="stickies"></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+const LANES = {{LANES_JSON}};
+const CODE = "{{PROCESS_CODE}}";
+const NS = "http://www.w3.org/2000/svg";
+const VIEW_ONLY = "You have view-only access to this board. Ask the board owner for edit access to make changes.";
+let db = null, canWrite = true, steps = [], edges = [], notes = [], selected = null;
+let dragId = null, dragMode = null, connectFrom = null;
+let cols = [], labelOf = {}, cardEls = {};
+const $ = id => document.getElementById(id);
+
+const colOf = s => typeof s.col === "number" ? s.col : (typeof s.order === "number" ? s.order : 0);
+const laneOf = s => LANES.includes(s.lane) ? s.lane : LANES[0];
+const outs = id => edges.filter(e => e.from === id);
+const ins = id => edges.filter(e => e.to === id);
+const stepById = id => steps.find(s => s.id === id);
+const nameOf = id => { const s = stepById(id); return s ? (labelOf[id] + " " + (s.title || "Untitled step")) : "missing step"; };
+function setStatus(t) { $("save-status").textContent = t; }
+function showNotice(t) { $("notice").textContent = t; $("notice").hidden = false; }
+
+function compute() {
+  cols = [...new Set(steps.map(colOf))].sort((a, b) => a - b);
+  labelOf = {};
+  cols.forEach((c, ci) => {
+    const inCol = steps.filter(s => colOf(s) === c).sort((a, b) => (LANES.indexOf(laneOf(a)) - LANES.indexOf(laneOf(b))) || (a.id < b.id ? -1 : 1));
+    const base = CODE + "-" + String((ci + 1) * 10).padStart(3, "0");
+    inCol.forEach((s, k) => { labelOf[s.id] = inCol.length > 1 ? base + String.fromCharCode(97 + k) : base; });
+  });
+}
+
+function gateTags(s) {
+  const tags = [], o = outs(s.id).length, i = ins(s.id).length;
+  if (i >= 2) tags.push(s.join === "all" ? [">  Merge: waits for all", ""] : s.join === "any" ? [">  Merge: first to arrive", ""] : ["Merge type not set", "warn"]);
+  if (o >= 2) tags.push(s.split === "parallel" ? ["+  Parallel split", ""] : s.split === "exclusive" ? ["×  Decision", ""] : ["Split type not set", "warn"]);
+  return tags;
+}
+
+/* ---------- Board ---------- */
+function renderBoard() {
+  const b = $("board");
+  b.innerHTML = ""; cardEls = {};
+  b.classList.toggle("connecting", !!connectFrom);
+  if (!steps.length) {
+    b.style.gridTemplateColumns = "1fr";
+    const e = document.createElement("div"); e.className = "empty-board";
+    e.textContent = db ? "No steps yet. Use Add step to start the flow." : "Loading the shared board…";
+    b.appendChild(e); return;
+  }
+  const tmpl = ["132px"]; cols.forEach(() => tmpl.push("30px", "200px")); tmpl.push("30px");
+  b.style.gridTemplateColumns = tmpl.join(" ");
+  const hl = document.createElement("div"); hl.className = "head-label"; b.appendChild(hl);
+  cols.forEach((c, ci) => {
+    b.appendChild(document.createElement("div"));
+    const h = document.createElement("div"); h.className = "head-cell"; h.textContent = "Stage " + (ci + 1); b.appendChild(h);
+  });
+  b.appendChild(document.createElement("div"));
+  LANES.forEach((lane, li) => {
+    const lab = document.createElement("div"); lab.className = "lane-label"; lab.textContent = lane; b.appendChild(lab);
+    cols.forEach((c, ci) => { b.appendChild(gapCell(lane, ci, li)); b.appendChild(colCell(lane, c, li)); });
+    b.appendChild(gapCell(lane, cols.length, li));
+  });
+  const svg = document.createElementNS(NS, "svg"); svg.setAttribute("class", "edges"); svg.setAttribute("aria-hidden", "true");
+  b.appendChild(svg);
+  requestAnimationFrame(drawEdges);
+}
+
+function dropTarget(el, onDrop) {
+  el.addEventListener("dragover", e => { if (dragMode !== "move" || !canWrite) return; e.preventDefault(); e.dataTransfer.dropEffect = "move"; el.classList.add("drop"); });
+  el.addEventListener("dragleave", e => { if (!el.contains(e.relatedTarget)) el.classList.remove("drop"); });
+  el.addEventListener("drop", e => { if (dragMode !== "move") return; e.preventDefault(); el.classList.remove("drop"); const id = dragId; endDrag(); if (id) onDrop(id); });
+}
+function gapCell(lane, gi, li) {
+  const g = document.createElement("div"); g.className = "gap" + (li % 2 ? " lane-odd" : "");
+  dropTarget(g, id => {
+    const n = cols.length;
+    const nc = n === 0 ? 10 : gi === 0 ? cols[0] - 10 : gi >= n ? cols[n - 1] + 10 : (cols[gi - 1] + cols[gi]) / 2;
+    moveTo(id, lane, nc);
+  });
+  return g;
+}
+function colCell(lane, c, li) {
+  const cell = document.createElement("div"); cell.className = "cell" + (li % 2 ? " lane-odd" : "");
+  dropTarget(cell, id => moveTo(id, lane, c));
+  steps.filter(s => laneOf(s) === lane && colOf(s) === c).sort((a, b) => (a.id < b.id ? -1 : 1)).forEach(s => cell.appendChild(card(s)));
+  return cell;
+}
+function card(s) {
+  const d = document.createElement("div");
+  d.className = "step" + (selected === s.id ? " selected" : "");
+  d.tabIndex = 0; d.setAttribute("role", "button");
+  d.draggable = canWrite;
+  d.innerHTML = `<span class="num"><span class="code"></span><span class="pill"></span></span><span class="ttl"></span><span class="gw"></span><span class="objs"></span>`;
+  d.querySelector(".code").textContent = labelOf[s.id];
+  const p = d.querySelector(".pill"); p.textContent = s.status === "agreed" ? "Agreed" : "Open"; p.classList.add(s.status === "agreed" ? "agreed" : "open");
+  d.querySelector(".ttl").textContent = s.title || "Untitled step";
+  const gw = d.querySelector(".gw");
+  gateTags(s).forEach(([t, cls]) => { const sp = document.createElement("span"); sp.textContent = t; if (cls) sp.className = cls; gw.appendChild(sp); });
+  const n = (s.objects || []).length;
+  d.querySelector(".objs").textContent = n ? n + " config object" + (n > 1 ? "s" : "") : "No config objects yet";
+  d.setAttribute("aria-label", labelOf[s.id] + " " + (s.title || "Untitled step") + ", " + laneOf(s));
+  if (canWrite) {
+    const h = document.createElement("span");
+    h.className = "handle"; h.textContent = "→"; h.draggable = true; h.tabIndex = 0;
+    h.setAttribute("role", "button"); h.setAttribute("aria-label", "Connect " + labelOf[s.id] + " to another step");
+    h.title = "Drag onto another step to connect";
+    h.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); startConnect(s.id); } });
+    d.appendChild(h);
+  }
+  d.addEventListener("dragstart", e => {
+    dragId = s.id; dragMode = e.target.closest && e.target.closest(".handle") ? "connect" : "move";
+    e.dataTransfer.effectAllowed = dragMode === "connect" ? "link" : "move";
+    try { e.dataTransfer.setData("text/plain", s.id); } catch (_) {}
+    if (dragMode === "move") d.classList.add("dragging");
+  });
+  d.addEventListener("dragend", endDrag);
+  d.addEventListener("dragover", e => {
+    if (dragMode !== "connect" || dragId === s.id) return;
+    e.preventDefault(); e.stopPropagation(); e.dataTransfer.dropEffect = "link"; d.classList.add("target");
+  });
+  d.addEventListener("dragleave", e => { if (!d.contains(e.relatedTarget)) d.classList.remove("target"); });
+  d.addEventListener("drop", e => {
+    if (dragMode !== "connect") return;
+    e.preventDefault(); e.stopPropagation(); d.classList.remove("target");
+    const from = dragId; endDrag(); if (from) createEdge(from, s.id);
+  });
+  const activate = e => {
+    if (e.target.closest && e.target.closest(".handle")) { startConnect(s.id); return; }
+    if (connectFrom) { const f = connectFrom; cancelConnect(); createEdge(f, s.id); return; }
+    select(s.id);
+  };
+  d.addEventListener("click", activate);
+  d.addEventListener("keydown", e => { if (e.target === d && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); activate(e); } });
+  cardEls[s.id] = d;
+  return d;
+}
+function endDrag() {
+  dragId = null; dragMode = null;
+  document.querySelectorAll(".dragging,.drop,.target").forEach(x => x.classList.remove("dragging", "drop", "target"));
+}
+
+function drawEdges() {
+  const b = $("board"), svg = b.querySelector("svg.edges"); if (!svg) return;
+  const W = b.scrollWidth, H = b.scrollHeight, br = b.getBoundingClientRect();
+  svg.setAttribute("width", W); svg.setAttribute("height", H); svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  const defs = document.createElementNS(NS, "defs");
+  [["ah", "ahp"], ["ahs", "ahp sel"]].forEach(([id, cls]) => {
+    const m = document.createElementNS(NS, "marker");
+    m.setAttribute("id", id); m.setAttribute("viewBox", "0 0 10 10"); m.setAttribute("refX", "9"); m.setAttribute("refY", "5");
+    m.setAttribute("markerWidth", "7"); m.setAttribute("markerHeight", "7"); m.setAttribute("orient", "auto");
+    const p = document.createElementNS(NS, "path"); p.setAttribute("d", "M0,0 L10,5 L0,10 z"); p.setAttribute("class", cls);
+    m.appendChild(p); defs.appendChild(m);
+  });
+  svg.appendChild(defs);
+  edges.forEach(e => {
+    const a = cardEls[e.from], t = cardEls[e.to]; if (!a || !t) return;
+    const ra = a.getBoundingClientRect(), rt = t.getBoundingClientRect();
+    const x1 = ra.right - br.left, y1 = ra.top + ra.height / 2 - br.top;
+    const x2 = rt.left - br.left, y2 = rt.top + rt.height / 2 - br.top;
+    let d, lx, ly;
+    if (x2 > x1 + 16) {
+      const dx = Math.max(26, (x2 - x1) / 2);
+      d = `M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}`;
+      lx = (x1 + x2) / 2; ly = (y1 + y2) / 2 - 6;
+    } else {
+      const yb = Math.max(ra.bottom, rt.bottom) - br.top + 14;
+      d = `M${x1},${y1} H${x1 + 16} V${yb} H${x2 - 16} V${y2} H${x2}`;
+      lx = (x1 + x2) / 2; ly = yb - 5;
+    }
+    const sel = selected && (e.from === selected || e.to === selected);
+    const path = document.createElementNS(NS, "path");
+    path.setAttribute("d", d); path.setAttribute("class", "edge" + (sel ? " sel" : ""));
+    path.setAttribute("marker-end", sel ? "url(#ahs)" : "url(#ah)");
+    svg.appendChild(path);
+    if (e.label) {
+      const tx = document.createElementNS(NS, "text");
+      tx.setAttribute("x", lx); tx.setAttribute("y", ly); tx.setAttribute("text-anchor", "middle"); tx.setAttribute("class", "elabel");
+      tx.textContent = e.label.length > 28 ? e.label.slice(0, 27) + "…" : e.label;
+      svg.appendChild(tx);
+    }
+  });
+}
+
+/* ---------- Editor ---------- */
+function renderEditor() {
+  const s = stepById(selected);
+  $("editor").hidden = !s; $("editor-empty").hidden = !!s;
+  $("q-ref").textContent = s ? "Will be tagged to " + labelOf[s.id] : "";
+  if (!s) return;
+  const keep = id => document.activeElement === $(id);
+  if (!keep("f-title")) $("f-title").value = s.title || "";
+  if (!keep("f-detail")) $("f-detail").value = s.detail || "";
+  if (!keep("f-objs")) $("f-objs").value = (s.objects || []).join("\n");
+  $("f-lane").value = laneOf(s);
+  if (!keep("f-stage")) {
+    $("f-stage").innerHTML = cols.map((c, ci) => `<option value="${ci}">Stage ${ci + 1}</option>`).join("") + `<option value="new">New stage at end</option>`;
+    $("f-stage").value = String(cols.indexOf(colOf(s)));
+  }
+  $("f-status").value = s.status === "agreed" ? "agreed" : "open";
+  const o = outs(s.id), i = ins(s.id);
+  $("split-box").hidden = o.length < 2; $("split-n").textContent = o.length; $("f-split").value = s.split || "";
+  $("join-box").hidden = i.length < 2; $("join-n").textContent = i.length; $("f-join").value = s.join || "";
+
+  const po = $("paths-out");
+  if (!po.contains(document.activeElement)) {
+    po.innerHTML = "";
+    if (!o.length) po.innerHTML = `<p class="hint">Nothing yet. This is an end point unless you connect it.</p>`;
+    o.forEach(e => {
+      const row = document.createElement("div"); row.className = "path";
+      const to = document.createElement("span"); to.className = "to";
+      const c = document.createElement("code"); c.textContent = labelOf[e.to] || ""; to.appendChild(c);
+      to.appendChild(document.createTextNode((stepById(e.to) || {}).title || "missing step"));
+      const inp = document.createElement("input");
+      inp.value = e.label || ""; inp.maxLength = 60; inp.disabled = !canWrite;
+      inp.placeholder = s.split === "exclusive" ? "Condition, e.g. Over $5,000" : "Label (optional)";
+      inp.setAttribute("aria-label", "Condition for path to " + nameOf(e.to));
+      inp.addEventListener("input", () => saveEdgeLabel(e.id, inp.value));
+      const x = document.createElement("button"); x.type = "button"; x.className = "x"; x.textContent = "Remove"; x.disabled = !canWrite;
+      x.setAttribute("aria-label", "Remove connection to " + nameOf(e.to));
+      x.addEventListener("click", () => removeEdge(e.id));
+      row.append(to, inp, x); po.appendChild(row);
+    });
+  }
+  const pi = $("paths-in"); pi.innerHTML = "";
+  if (!i.length) pi.innerHTML = `<p class="hint">Nothing yet. This is a starting point.</p>`;
+  i.forEach(e => {
+    const row = document.createElement("div"); row.className = "path in";
+    const fr = document.createElement("span"); fr.className = "to";
+    const c = document.createElement("code"); c.textContent = labelOf[e.from] || ""; fr.appendChild(c);
+    fr.appendChild(document.createTextNode(((stepById(e.from) || {}).title || "missing step") + (e.label ? "  (" + e.label + ")" : "")));
+    const x = document.createElement("button"); x.type = "button"; x.className = "x"; x.textContent = "Remove"; x.disabled = !canWrite;
+    x.setAttribute("aria-label", "Remove connection from " + nameOf(e.from));
+    x.addEventListener("click", () => removeEdge(e.id));
+    row.append(fr, x); pi.appendChild(row);
+  });
+  ["f-title","f-detail","f-objs","f-lane","f-stage","f-status","f-split","f-join","b-next","b-branch","b-connect","b-del"].forEach(id => $(id).disabled = !canWrite);
+}
+
+/* ---------- Flow check ---------- */
+function renderChecks() {
+  const issues = [];
+  if (steps.length > 1) steps.forEach(s => { if (!outs(s.id).length && !ins(s.id).length) issues.push([s.id, nameOf(s.id) + " isn't connected to anything."]); });
+  steps.forEach(s => {
+    const o = outs(s.id), i = ins(s.id);
+    if (o.length >= 2 && !s.split) issues.push([s.id, nameOf(s.id) + " splits into " + o.length + " paths. Choose parallel or decision."]);
+    if (s.split === "exclusive" && o.length >= 2) o.filter(e => !(e.label || "").trim()).forEach(e => issues.push([s.id, "Decision at " + labelOf[s.id] + ": the path to " + nameOf(e.to) + " needs a condition."]));
+    if (i.length >= 2 && !s.join) issues.push([s.id, nameOf(s.id) + " is where " + i.length + " paths merge. Choose whether it waits for all of them."]);
+  });
+  edges.forEach(e => { if (!stepById(e.from) || !stepById(e.to)) issues.push([null, "A connection points at a step that was removed."]); });
+  const starts = steps.filter(s => !ins(s.id).length && outs(s.id).length).length;
+  const ends = steps.filter(s => !outs(s.id).length && ins(s.id).length).length;
+  const ul = $("checks"); ul.innerHTML = "";
+  if (!steps.length) { const li = document.createElement("li"); li.className = "ok"; li.textContent = "Add steps to check the flow."; ul.appendChild(li); return; }
+  issues.forEach(([id, t]) => {
+    const li = document.createElement("li");
+    if (id) { const bt = document.createElement("button"); bt.type = "button"; bt.textContent = t; bt.addEventListener("click", () => select(id)); li.appendChild(bt); }
+    else li.textContent = t;
+    ul.appendChild(li);
+  });
+  const sum = document.createElement("li"); sum.className = "ok";
+  sum.textContent = (issues.length ? "" : "No gaps found. ") + starts + " start point" + (starts === 1 ? "" : "s") + ", " + ends + " end point" + (ends === 1 ? "" : "s") + ".";
+  ul.appendChild(sum);
+}
+
+function renderNotes() {
+  const w = $("stickies"); w.innerHTML = "";
+  if (!notes.length) { const p = document.createElement("p"); p.className = "hint"; p.textContent = "No open questions yet. Park anything the team can't settle here."; w.appendChild(p); return; }
+  notes.forEach(n => {
+    const d = document.createElement("div"); d.className = "sticky";
+    d.innerHTML = `<div class="srow"><span class="sref"></span><button type="button">Resolve</button></div><p></p>`;
+    d.querySelector(".sref").textContent = stepById(n.stepId) ? nameOf(n.stepId) : "General";
+    d.querySelector("p").textContent = n.text;
+    const rb = d.querySelector("button"); rb.disabled = !canWrite; rb.setAttribute("aria-label", "Resolve note");
+    rb.addEventListener("click", async () => { try { await db.doc("notes/" + n.id).delete(); } catch (e) { fail(e); } });
+    w.appendChild(d);
+  });
+}
+
+function renderMeta() {
+  $("m-steps").textContent = steps.length;
+  $("m-stages").textContent = cols.length;
+  $("m-par").textContent = steps.filter(s => outs(s.id).length >= 2 && s.split === "parallel").length;
+  $("m-dec").textContent = steps.filter(s => outs(s.id).length >= 2 && s.split === "exclusive").length;
+  $("m-merge").textContent = steps.filter(s => ins(s.id).length >= 2).length;
+  $("m-open").textContent = steps.filter(s => s.status !== "agreed").length;
+}
+
+function renderAll() { compute(); renderMeta(); renderBoard(); renderEditor(); renderChecks(); renderNotes(); }
+function select(id) { selected = id; $("del-confirm").hidden = true; renderAll(); }
+
+/* ---------- Writes ---------- */
+function fail(e) {
+  if (e && e.code === "invalid_argument") { canWrite = false; showNotice(VIEW_ONLY); renderAll(); }
+  else if (e && e.code === "quota_exceeded") setStatus("This board is full. Remove unused steps or notes.");
+  else setStatus("Couldn't save. Try again in a moment.");
+}
+const pending = {};
+function debounce(key, fn) { clearTimeout(pending[key]); pending[key] = setTimeout(fn, 450); }
+function saveField(field, value) {
+  const s = stepById(selected); if (!s || !db) return;
+  const id = s.id;
+  debounce(id + field, async () => {
+    setStatus("Saving…");
+    try { await db.doc("steps/" + id).update({ [field]: value }); setStatus("Saved"); } catch (e) { fail(e); }
+  });
+}
+function saveEdgeLabel(eid, value) {
+  debounce("edge" + eid, async () => {
+    setStatus("Saving…");
+    try { await db.doc("edges/" + eid).update({ label: value.trim() }); setStatus("Saved"); } catch (e) { fail(e); }
+  });
+}
+$("f-title").addEventListener("input", e => saveField("title", e.target.value));
+$("f-detail").addEventListener("input", e => saveField("detail", e.target.value));
+$("f-objs").addEventListener("input", e => saveField("objects", e.target.value.split("\n").map(x => x.trim()).filter(Boolean)));
+$("f-lane").addEventListener("change", e => saveField("lane", e.target.value));
+$("f-status").addEventListener("change", e => saveField("status", e.target.value));
+$("f-split").addEventListener("change", e => saveField("split", e.target.value || null));
+$("f-join").addEventListener("change", e => saveField("join", e.target.value || null));
+$("f-stage").addEventListener("change", e => {
+  const v = e.target.value, s = stepById(selected); if (!s) return;
+  const nc = v === "new" ? (cols.length ? cols[cols.length - 1] + 10 : 10) : cols[+v];
+  moveTo(s.id, laneOf(s), nc);
+  e.target.blur();
+});
+$("editor").addEventListener("submit", e => e.preventDefault());
+
+async function moveTo(id, lane, col) {
+  const s = stepById(id); if (!s || !db || !canWrite) return;
+  const patch = {};
+  if (laneOf(s) !== lane) patch.lane = lane;
+  if (colOf(s) !== col) patch.col = col;
+  if (!Object.keys(patch).length) return;
+  selected = id; setStatus("Saving…");
+  try { await db.doc("steps/" + id).update(patch); setStatus("Saved"); } catch (e) { fail(e); }
+}
+function colAfter(c) { const nx = cols.find(x => x > c); return nx === undefined ? c + 10 : nx; }
+function newColAfter(c) { const nx = cols.find(x => x > c); return nx === undefined ? c + 10 : (c + nx) / 2; }
+async function newStep(lane, col, title) {
+  const ref = db.collection("steps").doc();
+  await ref.set({ col, lane, title: title || "New step", detail: "", objects: [], status: "open" });
+  return ref.id;
+}
+async function createEdge(from, to) {
+  if (!db || !canWrite) return;
+  if (from === to) { setStatus("A step can't connect to itself."); return; }
+  if (edges.some(e => e.from === from && e.to === to)) { setStatus("Those steps are already connected."); return; }
+  setStatus("Saving…");
+  try { await db.doc("edges/e_" + from + "__" + to).set({ from, to, label: "" }); selected = from; setStatus("Connected " + labelOf[from] + " to " + labelOf[to]); } catch (e) { fail(e); }
+}
+async function removeEdge(eid) { try { await db.doc("edges/" + eid).delete(); setStatus("Connection removed"); } catch (e) { fail(e); } }
+
+$("b-add").addEventListener("click", async () => {
+  if (!db) return;
+  try { const id = await newStep(LANES[0], cols.length ? cols[cols.length - 1] + 10 : 10); selected = id; setStatus("Added"); } catch (e) { fail(e); }
+});
+$("b-next").addEventListener("click", async () => {
+  const s = stepById(selected); if (!s) return;
+  try { const id = await newStep(laneOf(s), newColAfter(colOf(s))); await createEdge(s.id, id); selected = id; } catch (e) { fail(e); }
+});
+$("b-branch").addEventListener("click", async () => {
+  const s = stepById(selected); if (!s) return;
+  const li = LANES.indexOf(laneOf(s));
+  const lane = LANES[(li + 1) % LANES.length];
+  try { const id = await newStep(lane, colAfter(colOf(s)), "New branch step"); await createEdge(s.id, id); selected = id; } catch (e) { fail(e); }
+});
+$("b-connect").addEventListener("click", () => { if (selected) startConnect(selected); });
+function startConnect(id) {
+  if (!canWrite) return;
+  connectFrom = id; selected = id;
+  $("connect-text").textContent = "Click the step that " + nameOf(id) + " leads to.";
+  $("connect-bar").hidden = false; renderAll();
+}
+function cancelConnect() { connectFrom = null; $("connect-bar").hidden = true; $("board").classList.remove("connecting"); }
+$("b-connect-cancel").addEventListener("click", () => { cancelConnect(); renderAll(); });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && connectFrom) { cancelConnect(); renderAll(); } });
+
+$("b-del").addEventListener("click", () => { $("del-confirm").hidden = false; });
+$("b-del-no").addEventListener("click", () => { $("del-confirm").hidden = true; });
+$("b-del-yes").addEventListener("click", async () => {
+  const id = selected; if (!id) return;
+  const touching = edges.filter(e => e.from === id || e.to === id).map(e => e.id);
+  selected = null; $("del-confirm").hidden = true; setStatus("Removing…");
+  try {
+    for (const eid of touching) await db.doc("edges/" + eid).delete();
+    await db.doc("steps/" + id).delete();
+    setStatus("Removed");
+  } catch (e) { fail(e); }
+});
+
+$("q-form").addEventListener("submit", async e => {
+  e.preventDefault();
+  const t = $("q-text").value.trim(); if (!t || !db) return;
+  try { await db.collection("notes").add({ text: t, stepId: selected || null, created: new Date().toISOString() }); $("q-text").value = ""; } catch (err) { fail(err); }
+});
+
+$("f-lane").innerHTML = LANES.map(l => `<option value="${l}">${l}</option>`).join("");
+renderAll();
+try { new ResizeObserver(() => drawEdges()).observe($("board")); } catch (_) {}
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => drawEdges());
+
+(async () => {
+  db = await claude.use("db");
+  if (!db) { canWrite = false; showNotice("This board needs you to be signed in to claude.ai to load and save the shared flow."); $("b-add").disabled = true; renderAll(); return; }
+  try {
+    const user = await claude.use("user");
+    const w = user ? await user.can("data.write") : null;
+    if (w === false) { canWrite = false; showNotice(VIEW_ONLY); $("b-add").disabled = true; }
+  } catch (e) {}
+  const onErr = () => showNotice("Lost connection to the shared board. Reload the page to reconnect.");
+  db.collection("steps").onSnapshot(snap => {
+    steps = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+    if (selected && !stepById(selected)) selected = null;
+    if (connectFrom && !stepById(connectFrom)) cancelConnect();
+    renderAll();
+  }, onErr);
+  db.collection("edges").onSnapshot(snap => {
+    edges = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+    renderAll();
+  }, onErr);
+  db.collection("notes").orderBy("created").onSnapshot(snap => {
+    notes = snap.docs.map(d => Object.assign({ id: d.id }, d.data()));
+    renderNotes();
+  }, () => {});
+})();
+</script>
+
