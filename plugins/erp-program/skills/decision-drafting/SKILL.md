@@ -30,7 +30,7 @@ Fewer, better options beat option sprawl: two real options and a recommendation 
 
 ## Landing the output
 
-Per `../../references/output-conventions.md`: create a decision record (DRAFT) via MCP when connected — schema.get first, link related requirements/RAID items/config objects, cite sources — and route to the named approver via submit-for-review once the user confirms. Never mark a decision approved yourself; the approval is the human's signature, and the system enforces that for good reason. Unconnected: save as markdown in the decisions folder using the same structure.
+Per `../../references/output-conventions.md`: call `schema_get` with `recordType: "decision"` first, then create a decision record (DRAFT) via `record_create_draft` when connected. Use `record_link` for related requirements, RAID items, and configuration objects; cite sources. Present the draft and named approver to the user. It remains a draft until a human submits it for review in ERP Forward; do not submit it through MCP. Never mark a decision approved yourself; approval is the human's signature. Unconnected: save as markdown in the decisions folder using the same structure.
 
 ---
 
