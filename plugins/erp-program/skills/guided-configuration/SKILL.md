@@ -1,6 +1,6 @@
 ---
 name: guided-configuration
-description: Guide a person, live in their browser, through configuring an approved ERP Forward business process in a development ERP tenant (Workday or Oracle Fusion), then file what was built back to ERP Forward as build verifications. Use this whenever someone has the new ERP open in Chrome and says "help me set this up", "walk me through configuring", "build this process in the tenant", "what do I enter here", "configure the merit cycle", or names an approved business process or configuration object and asks how to build it in the ERP. Requires the ERP Forward connector and Claude in Chrome. Not for producing a written build guide (use erp-module-build-guide) and never for production tenants.
+description: Guide a person, live in their browser, through configuring an approved ERP Forward business process in a development ERP tenant (Workday or Oracle Fusion), then file what was built back to ERP Forward as build verifications. Use this whenever someone has the new ERP open in Chrome and says "help me build [process] in this tenant", "check [configuration object] in this tenant", "help me set this up", "walk me through configuring", "build this process in the tenant", "what do I enter here", "configure the merit cycle", or names an approved business process or configuration object and asks how to build it in the ERP. Requires the ERP Forward connector and Claude in Chrome. Not for producing a written build guide (use erp-module-build-guide) and never for production tenants.
 ---
 
 # Guided configuration
@@ -84,9 +84,13 @@ its ordered plan and blockers. Otherwise assemble the plan yourself:
      setting is not decided);
    - no `questions` entry has `mandatory: true` without a `resolution`;
    - every `dependencies.entries` item with condition
-     `IMPLEMENTATION_VERIFIED` points to an object that already has an accepted,
-     passing build verification in this environment (check with
-     `test_results_list`). If you cannot confirm it, ask the person.
+     `IMPLEMENTATION_VERIFIED` points to an object that already has a passing
+     build verification in this environment (check with `test_results_list`).
+     A dependency that passed but is not yet accepted by the test lead does not
+     block. Warn the person in plain words (it matched, it isn't signed off, a
+     dispute could mean rework), let them choose to continue, and say on the
+     new verification that it was built before that sign-off. A dependency
+     with no passing verification at all, or a disputed one, blocks the object.
 6. Then `configuration_object_for_verification_get` on each buildable object
    for its approved setting values. Use those values, not the ones in the
    record payload text.
@@ -99,6 +103,10 @@ only some objects.
 ## Building one object
 
 Work one configuration object at a time, in plan order.
+
+If the person asked to check an object that is already built ("check
+[configuration object] in this tenant"), run Gates 1 to 3, then go straight to
+step 5, "Read back and verify". Don't walk them through building it again.
 
 ### 1. Brief the person
 
