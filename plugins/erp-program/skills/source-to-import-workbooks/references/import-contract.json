@@ -1,5 +1,5 @@
 {
-  "contractVersion": "1.0",
+  "contractVersion": "1.1",
   "note": "Machine-readable Import Review contract. This file is the single source of truth for field keys, required-ness, and allowed values. scripts/validate_stage_ready.py reads it. Keep import-contract.md aligned with it; when they disagree, this file wins.",
   "limits": {
     "maxFileBytes": 8388608,
@@ -40,9 +40,39 @@
         "technicalOwner": { "required": false, "rule": "Only when stated." },
         "lifecycleStatus": { "required": true, "enum": ["ACTIVE", "DECOMMISSION_PLANNED", "REPLACED", "UNKNOWN"] },
         "dataDomains": { "required": false, "rule": "Semicolon-separated factual domains." },
-        "criticality": { "required": true, "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"] },
+        "criticality": { "required": true, "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"], "rejectedValues": ["UNKNOWN"], "rule": "UNKNOWN exists in the record schema and staging accepts it, but this contract leaves it out on purpose: criticality is a conclusion. If the source doesn't state it, the candidate goes to the review pack." },
         "owningTeam": { "required": false, "rule": "Source text only; not a governance assignment." },
         "owningPillar": { "required": false, "rule": "Source text only; not a governance assignment." }
+      }
+    },
+    "integration": {
+      "purpose": "INVENTORY",
+      "fileNameExample": "<run-name>-integrations-import.xlsx",
+      "titleUsually": "displayName",
+      "fields": {
+        "externalInventoryId": { "required": true, "rule": "The stable identifier the source uses for this interface (inventory ID, node name, process name). Never a row number." },
+        "displayName": { "required": true, "rule": "The interface's name in business language." },
+        "purpose": { "required": false, "rule": "Only as stated by the source." },
+        "businessCapability": { "required": false },
+        "sourceSystemRecordId": { "required": false, "format": "uuid", "rule": "UUID of an existing legacy_system record, or blank. Never a system name; record the counterpart in unknowns instead." },
+        "destinationSystemRecordId": { "required": false, "format": "uuid", "rule": "UUID of an existing legacy_system record, or blank. Never a system name; record the counterpart in unknowns instead." },
+        "direction": { "required": true, "enum": ["INBOUND", "OUTBOUND", "BIDIRECTIONAL", "UNKNOWN"] },
+        "mechanism": { "required": true, "enum": ["BATCH", "EVENT", "API", "FILE", "MANUAL", "OTHER", "UNKNOWN"] },
+        "environment": { "required": false, "enum": ["PRODUCTION", "NON_PRODUCTION", "MULTIPLE", "UNKNOWN"] },
+        "lifecycleStatus": { "required": true, "enum": ["ACTIVE", "INACTIVE", "DECOMMISSION_PLANNED", "UNKNOWN"] },
+        "businessOwner": { "required": false, "rule": "As stated by the source. Do not guess." },
+        "technicalOwner": { "required": false, "rule": "Only when stated." },
+        "supportTeam": { "required": false, "rule": "Only when stated." },
+        "scheduleOrTrigger": { "required": false },
+        "dataEntities": { "required": false, "rule": "Semicolon-separated factual data entities." },
+        "authenticationMethod": { "required": false, "enum": ["NONE", "BASIC", "API_KEY", "OAUTH", "CERTIFICATE", "SFTP_KEY", "OTHER", "UNKNOWN"], "rule": "The method only. Never a secret, key, password or credential value." },
+        "dataClassification": { "required": false, "enum": ["PUBLIC", "INTERNAL", "CONFIDENTIAL", "RESTRICTED", "PAYROLL_SENSITIVE", "SECURITY_SENSITIVE", "UNKNOWN"], "rule": "Only when the source or the user states it. Never invent a sensitive classification." },
+        "criticality": { "required": true, "enum": ["LOW", "MEDIUM", "HIGH", "CRITICAL"], "rejectedValues": ["UNKNOWN"], "rule": "A conclusion, as for legacy_system. If the source doesn't state it, the candidate goes to the review pack." },
+        "usageStatus": { "required": false, "enum": ["CONFIRMED_IN_USE", "REPORTED_IN_USE", "NOT_IN_USE", "UNVERIFIED", "UNKNOWN"] },
+        "futureDisposition": { "required": true, "enum": ["UNASSESSED", "RETAIN", "MODIFY", "REPLACE", "CONSOLIDATE", "RETIRE"], "rule": "A proposal only. Use UNASSESSED unless the source or the user states the disposition." },
+        "retirementReason": { "required": false, "enum": ["ACTIVITY_ENDED", "FUNCTION_ABSORBED", "COUNTERPART_RETIRING"], "rule": "Only with futureDisposition RETIRE, and explain why in the description." },
+        "unknowns": { "required": false, "rule": "What the source doesn't say: counterpart system, owner, schedule, liveness." },
+        "sourceLineage": { "required": true, "rule": "Source file, sheet or page, row or cell references, and extraction run. Required on every row." }
       }
     },
     "legacy_object": {

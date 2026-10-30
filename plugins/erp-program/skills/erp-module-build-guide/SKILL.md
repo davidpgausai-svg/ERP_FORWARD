@@ -25,7 +25,13 @@ Getting this wrong wastes the most tokens, so it is worth stating plainly.
 1. **Read the source material.** Whatever was attached: process map, FSPD, workbook,
    decision record. Extract every numbered step, swimlane, decision diamond, and note.
 2. **Check the program record layer** for existing records on this topic, so you extend
-   what exists instead of duplicating it.
+   what exists instead of duplicating it. If there is an APPROVED business process for
+   this module, call `business_process_build_plan_get` on it: its steps, in build order,
+   with each configuration object's approved settings, build steps, tests and pinned
+   vendor guides, are the program's own design, and the guide's stages should follow
+   them. Draft or unapproved settings are proposals; label them so in the guide. To
+   walk someone through the build live in the tenant instead of writing a document,
+   use `guided-configuration`.
 3. **Research the vendor documentation** through the MCP. See `references/research-protocol.md`.
    This is where the real task names and sequences come from.
 4. **Ask the design decisions** that change the shape of the build. See below.

@@ -22,13 +22,13 @@ Misclassification matters: a risk logged as an issue triggers firefighting; an i
 
 ## Draft the record
 
-For each item capture: title (specific — "Vendor extract delayed 3 weeks", never "data concerns"); description with the observable facts; impact (what breaks, in program terms: dates, payroll, go-live scope); probability for risks (H/M/L with a reason); proposed owner (role if no name available); proposed mitigation or next action; source (meeting, document, date). Cite the source — an unattributed risk gets deleted in the next log scrub.
+For each item capture: title (specific — "Vendor extract delayed 3 weeks", never "data concerns"); description with the observable facts and the source (meeting, document, date); `category` (RISK, ASSUMPTION, ISSUE or DEPENDENCY); `severity` (LOW, MEDIUM, HIGH or CRITICAL); `likelihood` for risks (LOW, MEDIUM or HIGH, with a reason); `impactDescription` (what breaks, in program terms: dates, payroll, go-live scope); `mitigation` or next action; proposed owner (role if no name available). Cite the source — an unattributed risk gets deleted in the next log scrub. Confirm the fields with `schema_get` for `raid_item`.
 
-Check for duplicates first: search existing RAID items (record layer `record.search`, or the current RAID log file) before creating. If a similar item exists, propose updating it instead — duplicate risks fragment ownership.
+Check for duplicates first: search existing RAID items (`record_search` with type `raid_item`, or the current RAID log file) before creating. If a similar item exists, propose updating it instead — duplicate risks fragment ownership.
 
 ## Landing the output
 
-Per `../../references/output-conventions.md`: write raid_item records as DRAFT via MCP when connected (schema.get first), otherwise append to the RAID log file/CSV in the standard finding format. Present the drafts to the user compactly for confirmation before submitting for review. Severity-1 items (payroll, go-live date, legal/union exposure): tell the user explicitly this looks escalation-worthy and to whom it should go.
+Per `../../references/output-conventions.md`: write raid_item records as DRAFT via MCP when connected (`schema_get` first), otherwise append to the RAID log file/CSV in the standard finding format. Present the drafts to the user compactly for confirmation, then remind them that they submit each one for review in Keystone. CRITICAL items (payroll, go-live date, legal/union exposure): tell the user explicitly this looks escalation-worthy and to whom it should go (`governance_structure_get`).
 
 ---
 

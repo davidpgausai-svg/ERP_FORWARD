@@ -47,6 +47,8 @@ For each group capture: role and process and technology impact, the benefits the
 
 Segment by how work is actually performed, not by org chart. Academic units, central administrative functions, and clinical environments experience the same change differently, and clinical staff have coverage constraints that make some interventions impossible regardless of how well designed they are.
 
+To see how work is actually performed, use the legacy transaction data when the ERP Forward connector is available. It is the PeopleSoft Finance transaction export: who performs each transaction type today, in which department and division, and how often. `legacy_transaction_list` shows the types and the future-state processes they map to. `legacy_transaction_summary` gives counts by department, division and job family. `legacy_transaction_people` names the people who do the work, which is how the program finds subject-matter experts and real audiences instead of guessing from titles. Names are approved for program use for exactly this purpose. Leave salary out of change deliverables, and aggregate by role or department in anything shared beyond the change team.
+
 ## Communications
 
 Every planned communication carries these ten fields:
@@ -73,7 +75,7 @@ Never report free-text themes without indicating how many responses sit behind e
 
 ## Training
 
-Two sequential artifacts, in this order. The **Training Needs Analysis** captures functionality and topics requiring training, the audiences needing each, and delivery methods. It is not courses. The **curriculum** turns that into the actual content inventory, carrying: Functional Area · Process Area · Course Title · Description · Topics · Delivery Method (ILT, eLearning, Job Aid) · Duration · Course Owner · Course SME · Security Roles.
+Two sequential artifacts, in this order. The **Training Needs Analysis** captures functionality and topics requiring training, the audiences needing each, and delivery methods. It is not courses. For Finance processes, size each audience from the legacy transaction data (`legacy_transaction_summary` for counts, `legacy_transaction_people` for the named list) rather than from the org chart. The **curriculum** turns that into the actual content inventory, carrying: Functional Area · Process Area · Course Title · Description · Topics · Delivery Method (ILT, eLearning, Job Aid) · Duration · Course Owner · Course SME · Security Roles.
 
 The Security Roles column is the one that gets skipped and the one that hurts most later — training assignment and system access are the same list, and disconnecting them produces users with access and no training on day one.
 
@@ -83,7 +85,7 @@ Delivery is a train-the-trainer model: UM and MUHC staff deliver instructor-led 
 
 ## Landing the output
 
-Per `../../references/output-conventions.md`. Change impacts, communications, and curriculum lines are inventory rows destined for the program's Smartsheet trackers, so produce them as CSV with exactly the field names above, in that order, so they import without rework. Narrative deliverables (survey readouts, strategy sections, leadership briefs) are markdown. When the record layer is connected, call `schema.get` first and write as DRAFT.
+Per `../../references/output-conventions.md`. Change impacts, communications, and curriculum lines are inventory rows destined for the program's Smartsheet trackers, so produce them as CSV with exactly the field names above, in that order, so they import without rework. Narrative deliverables (survey readouts, strategy sections, leadership briefs) are markdown. When the record layer is connected, call `schema_get` first and write as DRAFT.
 
 Nothing here is approved by you. Change impacts require SME validation, communications require content owner and sender approval, curriculum requires SME sign-off. Hand over drafts and name who has to bless them.
 

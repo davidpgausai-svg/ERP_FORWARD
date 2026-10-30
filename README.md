@@ -15,6 +15,7 @@ Program operations:
 - `process-and-decision-modeling` — draft future-state BPMN 2.0 process maps and DMN 1.3 policy decision tables against the record layer, with conflict checks before submission
 - `process-flow-board` — set up a shared drag-and-drop swimlane board where a workstream team sketches a future-state process (parallel paths, decisions, merges), then build the business process package from it once the flow is locked
 - `erp-module-build-guide` — produce a stage-by-stage ERP module build guide (Word docx, optionally with an editable Visio swimlane diagram) that tells someone in front of a blank tenant exactly which tasks to run and in what order
+- `guided-configuration` — guide a person live in a development ERP tenant (Claude in Chrome) through building an approved business process, then file what was built as build verifications
 
 Conversion discovery (works from PeopleSoft extract-kit output — Packs 0–6 — or, without database access, from PS Query downloads and screenshots of PeopleSoft pages):
 - `peoplesoft-metadata-reader` — foundational: inventories, usage ranking, human translation; three entry modes (extract CSVs, PS Query, page screenshots) and a runbook for producing the extracts yourself
@@ -23,7 +24,6 @@ Conversion discovery (works from PeopleSoft extract-kit output — Packs 0–6 �
 - `security-access-analysis` — who-can-do-what, role hygiene, SoD candidates, org-design input
 - `integration-discovery` — what talks to PeopleSoft; what breaks at cutover
 - `report-rationalization` — query/report estate → keep/replace/retire drafts
-- `process-map-drafting` — current-state maps from system evidence + SME correction
 
 Shared references (`plugins/erp-program/references/`):
 - `extract-library-guide.md` — packs, file naming, decodes and joins, completeness gates
@@ -34,4 +34,4 @@ Extract kit (`plugins/erp-program/extract-kit/`): the SQL that produces Packs 0�
 
 ## House rules baked into every skill
 
-Nothing canonical stays in chat; outputs land in the record layer (DRAFT, via MCP, schema-first) or as structured files in the extract library. Approvals are human-only. No identified employee/student/payroll data — the extract library is metadata, config, and telemetry only. Every claim cites its source file and snapshot date. Changes to skills come through pull requests.
+Nothing canonical stays in chat; outputs land in the record layer (DRAFT, via MCP, schema-first) or as structured files in the extract library. Claude never submits or approves: a person submits each draft in Keystone and picks the approval route. No identified employee/student/payroll data — the extract library is metadata, config, and telemetry only. Every claim cites its source file and snapshot date. Changes to skills come through pull requests.

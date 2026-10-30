@@ -7,7 +7,7 @@ Extraction is a claims exercise, not a text-scraping exercise: every candidate i
 | Field | Content |
 |---|---|
 | candidateId | Stable ID tying the candidate to its import row or exception (e.g. `C-014`) |
-| targetRecordType | One of the six families, or `EXCEPTION` |
+| targetRecordType | One of the seven families, or `EXCEPTION` |
 | sourceFile | Exact filename |
 | sourceLocator | DOCX heading/table; PDF page + section/table; Visio page/shape/lane |
 | sourceExcerpt | Short quote, cell text, or diagram label supporting the claim |

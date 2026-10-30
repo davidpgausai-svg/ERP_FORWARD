@@ -13,7 +13,7 @@ The peer-institution lesson: after go-live, two teams argued for months about wh
 
 Two artifact types, one skill:
 
-- **Business process map (BPMN 2.0)** — how work flows, who does what, which systems get touched, where the handoffs are. Lives on a `business_process` record. The canonical XML is stored as an attachment; the record layer parses it on write into a structured extract that other queries hit.
+- **Business process map (BPMN 2.0)** — how work flows, who does what, which systems get touched, where the handoffs are. Lives on a `business_process` record. The record's primary evidence is its ordered future-state mapping steps (`targetPlatformMapping`); BPMN is optional corroboration that shows the same flow as a diagram. The XML is stored as the record's canonical BPMN attachment, and the record layer parses it on write into a structured extract that other queries hit.
 - **Decision table (DMN 1.3, tables only)** — the rules a policy actually implements: "if the employee's classification is X and the funding source is Y and the amount is over Z, route to approver A." Lives on a `policy_constraint` record. Same shape: canonical XML plus structured extract.
 
 Never confuse the two. A process map answers *how*. A decision table answers *given these inputs, what*. If you catch yourself putting decision rules inside a BPMN gateway with a paragraph of conditions, you probably want a DMN table linked to that gateway instead.
@@ -27,6 +27,7 @@ Every rule the rest of the ERP Forward skills follow applies here too. Restated 
 - **Every write is agent-assisted and versioned.** The record layer stamps this automatically; you never bypass it by writing to storage directly.
 - **Check before you create.** Before drafting anything new, use `record_search` and `record_list` to see what's already in the record layer, `record_get` to read the ones that look related, and `record_links_list` to walk their dependencies. Duplicating an existing artifact wastes review capacity and confuses the audit trail.
 - **The conflict check is not optional.** After you've drafted BPMN or DMN, call `business_process_conflicts_get` (for BPMN) or evaluate the DMN table against representative inputs before you hand the draft back to the human. If there are HARD conflicts, do not hand back "here's your draft, submit it"; hand back "here's your draft plus the four conflicts you need to resolve before this is submittable."
+- **Mapping steps first, BPMN second.** For a future-state process, the ordered mapping steps are what reviewers approve and what the build plan is built from. Draft them before, or with, the diagram, and keep the two telling the same story.
 - **No LLM in the record layer.** Your job is to write BPMN XML and DMN XML that the record layer's deterministic parser and evaluator can consume. If the parser rejects your output, fix the output — do not ask the record layer to loosen its parser.
 - **PAYROLL_SENSITIVE and SECURITY_SENSITIVE classifications:** if a policy decision table involves payroll or security rules, do not include row-level examples of real employees, real GLs, or real security roles in the DMN test inputs. Use synthetic values.
 
@@ -60,16 +61,20 @@ Keep first drafts small. A 12-task diagram that captures the shape wins over a 4
 
 ### 3. Land the draft in the record layer
 
-- `record_create_draft` with `recordType: "business_process"`, `workstreamId`, `title`, `description` (one sentence — what this process does), and `payload` containing `processKind`, `summary`, `ownerRole`, `affectedWorkstreamIds`, and `plannedGoLive` where applicable. This creates the record in DRAFT, no BPMN attached yet.
-- `evidence_attach` to upload the BPMN XML as an attachment on the new record. The record layer parses it on write — if the XML is malformed, the call fails with the parser's error message. Fix the XML and retry.
-- `record_update` to set `bpmnAttachmentId` on the record to the returned attachment id, along with the `expectedVersion` from the create response.
-- If related records exist (a current-state map, a requirement, a policy, a legacy system), use `record_link` with the correct typed link (`derives_from`, `implements_requirement`, `subject_to_policy`, `touches_legacy_system`).
+- Call `schema_get` for `business_process` and follow it; the field names below are the current ones, but the schema wins.
+- Create the record as a DRAFT. For a future-state process with related drafts (RAID items, decisions, policy constraints, configuration objects), use one `business_process_submit_group` call; otherwise `record_create_draft` with `recordType: "business_process"`. Set `workstreamId`, `title`, `description` (one sentence — what this process does) and a `payload` with:
+  - `processKind` (CURRENT, FUTURE or INTERIM), `processOwner` (a role), `affectedWorkstreamIds`, and `evidenceFormat`;
+  - `targetPlatformMapping.segments`: one row per step, in workflow order, each with `order` (1, 2, 3…), `segmentName`, `evidenceStatus` (INSUFFICIENT unless a cited source backs the step; the server marks a row EVIDENCED if you leave it out) and `evidenceNote` (the role and any detail). Leave `configurationObjectId` and `buildOrder` unset unless an existing configuration object and an established build order support them;
+  - `plannedGoLive` only when an approved milestone supports the date. A date from a draft decision is a proposal: leave it blank and say why.
+  Do not write `summary` or `ownerRole`; they are retired fields kept only for older records.
+- Attach the BPMN with `record_bpmn_attach`: the record's key, exact title and type, a plain-language purpose and description of the diagram, the complete BPMN 2.0 XML with diagram shapes, and the record's current version. This is the only tool that accepts XML you wrote. `evidence_attach` only attaches a file a person already uploaded, and you cannot upload files. The server returns its own parsed process name, counts and validation issues; if the XML is rejected, fix it and attach again. Only say the diagram is attached after the tool returns an attachment id.
+- If related records exist, link them with `record_link`, using the link types `schema_get` lists and describing the direction in plain words ("from record A maps from record B"). Common cases: a future-state process `MAPS_FROM` its current-state map; a process `SATISFIES` or `IMPLEMENTS` a requirement; a `policy_constraint` `CONSTRAINS` the process. Legacy systems are referenced inside the BPMN with `erpForward:systemRef`; add a `RELATES_TO` link only if the person wants it explicit.
 
 ### 4. Run the conflict check
 
 - Call `business_process_conflicts_get` with the record id.
 - Interpret the response:
-  - **CLEAR:** hand it to the human with "no conflicts detected; you can submit for review directly in the record layer."
+  - **CLEAR:** hand it to the human with "no conflicts detected; you can submit it for review in Keystone."
   - **SOFT_CONFLICT (warnings only):** for each warning, explain what it means in plain language, name the referenced record, and propose a resolution. The human will need to acknowledge each warning with a rationale in the submit dialog; make sure they know why they're acknowledging it, not just that they need to click.
   - **HARD_CONFLICT:** do not encourage submission. For each hard conflict, explain what it is, name the record that caused it, and propose a fix — either editing the BPMN (e.g. replace a retired system with its replacement) or resolving the referenced record (e.g. picking a disposition for the legacy system). Offer to draft the edits. The human decides which to pursue.
 
@@ -83,7 +88,7 @@ Same shape as BPMN, three differences worth calling out.
 
 ### 1. Orient
 
-Use `record_search` for `policy_constraint` records in the affected workstream. If one already exists for the policy in question, you're editing an existing table on that record, not creating a new one. If not, create a `policy_constraint` DRAFT first (title = policy name, description = one sentence, payload includes `sourceInstrument`, `citation`, `sourceStatus`) — the decision table attaches to that record.
+Use `record_search` for `policy_constraint` records in the affected workstream. If one already exists for the policy in question, you're editing an existing table on that record, not creating a new one. If not, create a `policy_constraint` DRAFT first (`schema_get` first; title = policy name, description = one sentence; payload with the required `sourceAuthority`, `constraintText` and `sourceStatus` (CONFIRMED, CONFLICTING_SOURCES or UNVERIFIED), plus `policyCitation`) — the decision table attaches to that record.
 
 ### 2. Draft the DMN XML
 
@@ -100,11 +105,11 @@ Use `record_search` for `policy_constraint` records in the affected workstream. 
 
 ### 3. Land, extract, and evaluate
 
-- `evidence_attach` uploads the DMN XML to the `policy_constraint` record.
-- `record_update` sets `dmnAttachmentId` and `hitPolicy` on the record with `expectedVersion`.
+- You cannot attach DMN XML yourself; no MCP tool accepts it. Give the person the finished XML as a `.dmn` file and ask them to upload it to the `policy_constraint` record in Keystone (the record's evidence panel).
+- Once they have, read the record to find the new attachment's id, then call `record_update` with `dmnAttachmentId` set to that id, `hitPolicy`, and `expectedVersion`.
 - Then evaluate. Call `decision_table_evaluate` with representative synthetic inputs — five to ten distinct scenarios that cover the interesting edges of the policy (a base case, boundary cases, an exception, a "no rule should match" case if the hit policy is not `COLLECT_*`).
 - Present the results to the human. If a scenario returns `MULTIPLE_MATCH_ERROR` under `UNIQUE`, the table has overlapping rules and needs a fix. If a scenario returns no match when one was expected, the table has a gap.
-- Do not submit for review until the evaluations look right to the human. A policy that evaluates wrong at UAT is much worse than a policy that never shipped.
+- Do not suggest submitting for review until the evaluations look right to the human. A policy that evaluates wrong at UAT is much worse than a policy that never shipped.
 
 ### 4. Hand off
 
@@ -115,6 +120,8 @@ Same as BPMN: summarize what you did, name the record id, point at `/records/<id
 - If the process design surfaces a decision that needs to be made (like a target-platform choice or a policy-source contradiction), stop the BPMN workflow and use `decision-drafting` first. Land the decision, get it approved, then come back to the process.
 - If the process is really a change to organizational responsibility (a role that used to do X now does Y), use `change-management` to draft the change impact and stakeholder analysis. The BPMN captures the mechanic; change-management captures the human implication.
 - If the source material is a Visio, PDF, or discovery document, use `source-to-import-workbooks` to extract the process structure first, then come back to this skill to draft BPMN from that structured evidence.
+- If the person is mapping a CURRENT-state process from PeopleSoft evidence (approval routes, navigation, usage), read the evidence with `peoplesoft-metadata-reader` first, then draft the CURRENT map here and have the SMEs correct it before anyone designs the future state.
+- If a team wants to sketch the flow together first, use `process-flow-board`, then build the record from the board.
 - If the request is really "who owns this decision," use `governance-navigator` before drafting anything.
 
 ## What not to do

@@ -28,7 +28,7 @@ Read `../../references/extract-library-guide.md` first. Follow the peoplesoft-me
 
 ## Landing the output
 
-Per `../../references/output-conventions.md`: DRAFT legacy_object updates and requirement records via MCP when connected; dispositions route to functional owners for approval — never mark them decided.
+Per `../../references/output-conventions.md`: DRAFT `legacy_object` updates and `requirement` records via MCP when connected (`schema_get` first). Keep the detailed dispositions above in the cluster table. On `legacy_object.disposition`, record one of MIGRATE, REPLACE, RETIRE, RETAIN or ASSESS: RETIRE and PROCESS_CHANGE → RETIRE, TARGET_STANDARD and TARGET_CONFIGURED → REPLACE, TARGET_GAP → ASSESS plus a `requirement` record, REPORTING_ONLY → REPLACE; put the detailed label in the description. Dispositions route to functional owners for approval — never mark them decided.
 
 ---
 

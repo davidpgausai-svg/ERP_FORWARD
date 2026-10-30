@@ -17,7 +17,7 @@ Two corollaries that matter in practice: never fabricate an owner, workstream UU
 
 Read `references/import-contract.md` before building anything — it holds family selection guidance and the interpretive rules. `references/import-contract.json` is the machine-readable contract (exact field keys, required-ness, allowed values) and wins over any other description if they ever disagree.
 
-Six families only: `legacy_system`, `legacy_object`, `shadow_system`, `crosswalk_domain` (purpose INVENTORY), `requirement` (REQUIREMENTS), `raid_item` (RAID). Business processes, configuration objects, decisions, meetings, milestones, policies, evidence links, record links, and approval requests **cannot be staged** — a process map may *support* a requirement, RAID item, crosswalk domain, or estate object, but must never be forced into an unsupported family.
+Seven families only: `legacy_system`, `legacy_object`, `shadow_system`, `crosswalk_domain`, `integration` (purpose INVENTORY), `requirement` (REQUIREMENTS), `raid_item` (RAID). Test cases import through Testing › Import test cases, not this skill. Business processes, configuration objects, decisions, meetings, milestones, policies, evidence links, record links, and approval requests **cannot be staged** — a process map may *support* a requirement, RAID item, crosswalk domain, or estate object, but must never be forced into an unsupported family.
 
 ## Workflow
 

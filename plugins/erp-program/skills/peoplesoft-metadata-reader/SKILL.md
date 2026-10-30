@@ -5,7 +5,7 @@ description: Read, produce, and analyze PeopleSoft metadata and configuration �
 
 # PeopleSoft Metadata Reader
 
-This is the foundational conversion skill. It turns evidence about a PeopleSoft estate — extract CSVs, PS Query downloads, or screenshots of the pages themselves — into ranked, human-readable inventories a functional owner can act on, and it walks people through producing that evidence without hiring anyone to do it. The other discovery skills (snapshot-diff, customization-analysis, security-access-analysis, integration-discovery, report-rationalization, process-map-drafting) assume the habits set here.
+This is the foundational conversion skill. It turns evidence about a PeopleSoft estate — extract CSVs, PS Query downloads, or screenshots of the pages themselves — into ranked, human-readable inventories a functional owner can act on, and it walks people through producing that evidence without hiring anyone to do it. The other discovery skills (snapshot-diff, customization-analysis, security-access-analysis, integration-discovery, report-rationalization) and current-state process mapping in process-and-decision-modeling assume the habits set here.
 
 Read `../../references/extract-library-guide.md` first. It defines the packs, the file names, the decodes and joins, and the completeness gates. Everything below depends on it.
 
@@ -81,7 +81,7 @@ Screenshots are how a functional analyst gets started on day one and how a speci
 - SoD, role design, org design from access data → `security-access-analysis`.
 - What talks to PeopleSoft → `integration-discovery`.
 - The reporting estate → `report-rationalization`.
-- Turning evidence into a current-state process map → `process-map-drafting`.
+- Turning evidence into a current-state process map → `process-and-decision-modeling` (a CURRENT map, corrected by SMEs).
 - A design document, Visio or fit-gap workbook rather than an extract → `source-to-import-workbooks` first.
 
 ---

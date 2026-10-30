@@ -157,7 +157,7 @@ def validate(path, contract, family_arg=None):
                 )
             if val in (s.get("rejectedValues") or []):
                 problems.append(
-                    f"row {n}: '{field}' = '{val}' is rejected by staging; move this record to the review pack"
+                    f"row {n}: '{field}' = '{val}' is not accepted by this contract; move this record to the review pack"
                 )
             fmt = s.get("format")
             if fmt == "date" and not re.match(fmts["date"]["pattern"], val):
@@ -168,8 +168,8 @@ def validate(path, contract, family_arg=None):
                 )
             if fmt == "uuid" and not re.match(fmts["uuid"]["pattern"], val):
                 problems.append(
-                    f"row {n}: '{field}' = '{val}' is not a UUID. workstreamId must be a real workstream "
-                    "UUID or left blank — never a workstream name."
+                    f"row {n}: '{field}' = '{val}' is not a UUID. Use the real record UUID or leave it "
+                    "blank — never a name (for workstreamId, never a workstream name)."
                 )
         t = cell(row, "title")
         if t:

@@ -6,24 +6,38 @@ to retrieve from and how to avoid the failure modes.
 ## Establish the target first
 
 Call `vendor_status_get` before anything else. It returns the active vendor, the target
-ERP, operating mode, and how many documents are actually captured and searchable. Two
-things this prevents:
+ERP, the evaluation phase, which vendors' documentation is open, and how many documents
+are actually captured and searchable. Two things this prevents:
 
-- Writing an Oracle build guide when the tenant is Workday.
+- Writing a guide for the wrong ERP. While the ERP selection is unsigned
+  (`evaluation.phase` is EVALUATING), every candidate ERP's documentation is open: if
+  the person hasn't named a vendor, say the selection is open and ask which ERP the
+  guide is for, or use `platform_docs_compare` to show the candidates side by side.
+  Once the selection is signed, documentation is locked to the awarded ERP.
 - Confidently researching a corpus that turns out to be empty. If the document count is
   zero or the capture failed, say so rather than filling the gap from training data.
 
 ## Lane routing
 
-The MCP has four retrieval lanes and they are not interchangeable. Using the wrong one
-returns nothing and looks like the topic is uncovered.
+The MCP has several retrieval lanes and they are not interchangeable. Using the wrong one
+returns nothing and looks like the topic is uncovered. Use only the lanes for the ERP the
+guide is for: never answer about one ERP with another's words or pages.
 
 | Lane | Tools | Use for |
 |---|---|---|
-| Governed evidence | `vendor_search`, `vendor_guidance_get` | Human-approved, pinnable evidence. Use when the claim needs to survive an audit. Often sparse. |
-| Functional and admin config | `admin_docs_search`, `admin_docs_get` | The main lane for build guides. Task names, setup steps, tenant settings, security domains, business process guidelines. |
-| Developer API reference | `developer_docs_search`, `developer_docs_get` | Web services, REST endpoints, integration payloads. |
-| Paradox / Olivia | `paradox_docs_search`, `paradox_docs_get` | Candidate experience questions only. |
+| Governed evidence (both ERPs) | `vendor_search`, `vendor_guidance_get` | Human-approved, pinnable evidence. Use when the claim needs to survive an audit. Often sparse. |
+| Workday functional and admin config | `admin_docs_search`, `admin_docs_get` | The main Workday lane for build guides. Task names, setup steps, tenant settings, security domains, business process guidelines. |
+| Workday developer API reference | `developer_docs_search`, `developer_docs_get` | Web services, REST endpoints, integration payloads. |
+| Paradox / Olivia (a Workday add-on) | `paradox_docs_search`, `paradox_docs_get` | Candidate experience questions only. Never part of an Oracle guide. |
+| Oracle Fusion documentation | `oracle_docs_search`, `oracle_docs_get`, `oracle_docs_releases`, `oracle_docs_release_diff` | The main Oracle lane: implementation and setup tasks, by release. |
+| Oracle reference | `oracle_reference_docs_search` | Oracle reference material that sits outside the release guides. |
+| Candidate comparison | `platform_docs_compare` | While the selection is unsigned and no vendor is named: the same question against every candidate, side by side. Never declare a winner. |
+
+Before concluding a topic isn't covered, call `glossary_lookup` on the term and search
+again with the words it returns. Workday, Oracle and PeopleSoft often name one concept
+differently (for example, PeopleSoft's DEPTID becomes Cost Center and Supervisory
+Organization in Workday). `NO_EVIDENCE_IN_CORPUS` means the captured documentation
+returned nothing for that query, not that the product lacks the capability.
 
 If `vendor_search` returns nothing, that does not mean the topic is uncovered. Try
 `admin_docs_search` before concluding anything. The governed lane and the raw capture
@@ -34,7 +48,7 @@ lane have very different coverage.
 Search returns snippets. Get the full page with the matching `_get` tool before relying
 on it, because the sequence and field detail you need is usually below the snippet.
 
-Pages whose titles begin with **Steps:** are the highest-value retrievals. They contain
+For Workday, pages whose titles begin with **Steps:** are the highest-value retrievals. They contain
 Workday's own ordered setup sequence with task names, and they link to the next page in
 the chain. Pull the whole chain. For a module named X, search in roughly this order:
 
@@ -56,6 +70,13 @@ Before drafting, call `record_search` on the module name and `workstream_list`. 
 tells you whether a record already exists, who owns it, and which workstreams are
 affected. Extending an existing draft record beats creating a duplicate, and the
 workstream IDs are what owner assignments in the guide should resolve to.
+
+When an APPROVED business process covers the module, `business_process_build_plan_get`
+returns its configuration objects in build order, with approved settings, build steps,
+tests and the vendor guides each one pins (`externalDocumentId` and `documentVersionId`
+for `vendor_guidance_get`). The program's approved settings decide what to enter; vendor
+pages explain where and how. Carry each record's status into the guide: a DRAFT setting
+is a proposal, not a decided value.
 
 When a build guide surfaces new open decisions or risks, offer to log them through the
 record layer rather than leaving them only in the document.

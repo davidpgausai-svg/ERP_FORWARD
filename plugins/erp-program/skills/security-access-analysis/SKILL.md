@@ -31,7 +31,7 @@ Read `../../references/extract-library-guide.md`; the access chain is PSROLEUSER
 
 ## Landing the output
 
-Per `../../references/output-conventions.md`: security_role, sod_conflict, and finding records as DRAFT via MCP when connected. This skill reads user IDs — treat outputs as INTERNAL; aggregate by role/department in anything widely shared, and never include the raw user-level matrix in an executive deliverable.
+Per `../../references/output-conventions.md`: the role inventory, access matrix and SoD candidates are CSV deliverables; the record layer has no role, SoD or finding record types. When connected, log what needs action as DRAFT records (`schema_get` first): a confirmed SoD conflict or role-hygiene problem as a `raid_item` (category ISSUE if it exists today, RISK if it would carry into the new design), and a design need for target role design as a `requirement`. This skill reads user IDs — treat outputs as INTERNAL; aggregate by role/department in anything widely shared, and never include the raw user-level matrix in an executive deliverable.
 
 ---
 
