@@ -15,6 +15,7 @@ Program operations:
 - `process-and-decision-modeling` — draft future-state BPMN 2.0 process maps and DMN 1.3 policy decision tables against the record layer, with conflict checks before submission
 - `process-flow-board` — set up a shared drag-and-drop swimlane board where a workstream team sketches a future-state process (parallel paths, decisions, merges), then build the business process package from it once the flow is locked
 - `erp-module-build-guide` — produce a stage-by-stage ERP module build guide (Word docx, optionally with an editable Visio swimlane diagram) that tells someone in front of a blank tenant exactly which tasks to run and in what order
+- `guided-configuration` — **draft, Guide mode only** — walk someone live in Chrome through configuring an approved business process in a non-production Workday or Oracle Fusion tenant, gated on approval, platform authorization and environment checks, then file what was built back as build verifications
 
 Conversion discovery (works from PeopleSoft extract-kit output — Packs 0–6 — or, without database access, from PS Query downloads and screenshots of PeopleSoft pages):
 - `peoplesoft-metadata-reader` — foundational: inventories, usage ranking, human translation; three entry modes (extract CSVs, PS Query, page screenshots) and a runbook for producing the extracts yourself
