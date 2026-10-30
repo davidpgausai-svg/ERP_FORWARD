@@ -18,13 +18,13 @@ Read `../../references/extract-library-guide.md` first.
 
 ## Draft the interface inventory
 
-One row per interface: name (business language), counterpart system, direction, mechanism (IB/file/manual), data domain, observed frequency and volume (P4), evidence (which source(s) above), liveness, criticality guess (operational daily vs periodic reporting), disposition draft (REBUILD_TO_TARGET, RETIRE_WITH_SOURCE, REPLACE_WITH_VENDOR_STANDARD, INTERIM_BRIDGE_NEEDED — flag interfaces needing a bridge if pillars go live at different times), confidence.
+One row per interface: name (business language), counterpart system, direction, mechanism (IB/file/manual), data domain, observed frequency and volume (P4), evidence (which source(s) above), liveness, criticality guess (operational daily vs periodic reporting), disposition draft (REBUILD_TO_TARGET, RETIRE_WITH_SOURCE, REPLACE_WITH_VENDOR_STANDARD, INTERIM_BRIDGE_NEEDED — flag interfaces needing a bridge if pillars go live at different times), confidence. These detailed labels belong in the CSV; when writing records, map them to the record's `futureDisposition` values (below).
 
 Interfaces appearing in only one evidence source get LOW confidence by default — corroboration is the game. The EmplID master-person-index consumers deserve explicit callout: anything consuming EmplID is on the highest-risk list per the program's crosswalk rules.
 
 ## Landing the output
 
-Per `../../references/output-conventions.md`: inventory CSV + executive summary (headline: total interfaces, live count, criticality mix, absence list). DRAFT integration_interface records via MCP when connected. End with unknowns and the interview agenda.
+Per `../../references/output-conventions.md`: inventory CSV + executive summary (headline: total interfaces, live count, criticality mix, absence list). When connected, write DRAFT `integration` records (the record type is `integration`; confirm fields with `schema_get`). Required: `externalInventoryId`, `displayName`, `direction`, `mechanism`, `lifecycleStatus`, `criticality`, `futureDisposition` and `sourceLineage`. Map the disposition draft to `futureDisposition`: REBUILD_TO_TARGET → REPLACE or MODIFY, RETIRE_WITH_SOURCE → RETIRE, REPLACE_WITH_VENDOR_STANDARD → REPLACE, INTERIM_BRIDGE_NEEDED → RETAIN with the bridge noted in the description, anything unassessed → UNASSESSED. Keep the detailed label in the description. For a large inventory, the CSV can also go through Import Review (`source-to-import-workbooks`, family `integration`). End with unknowns and the interview agenda.
 
 ---
 

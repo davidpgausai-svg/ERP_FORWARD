@@ -30,7 +30,7 @@ Fewer, better options beat option sprawl: two real options and a recommendation 
 
 ## Landing the output
 
-Per `../../references/output-conventions.md`: create a decision record (DRAFT) via MCP when connected — schema.get first, link related requirements/RAID items/config objects, cite sources — and route to the named approver via submit-for-review once the user confirms. Never mark a decision approved yourself; the approval is the human's signature, and the system enforces that for good reason. Unconnected: save as markdown in the decisions folder using the same structure.
+Per `../../references/output-conventions.md`: create a decision record (DRAFT) via MCP when connected — `schema_get` first; fill the required `statement` (the question) and `decisionType` (PLATFORM_SELECTION, PLATFORM_EVALUATION, SCOPE, POLICY, DESIGN or OTHER); link related requirements, RAID items and configuration objects with `record_link`, using the link types `schema_get` lists; cite sources. You cannot submit it or choose the approver: tell the person the decision is a DRAFT and that they submit it in Keystone, where they pick the approval route for the decision maker named above. Never mark a decision approved yourself; the approval is the human's signature, and the system enforces that for good reason. Unconnected: save as markdown in the decisions folder using the same structure.
 
 ---
 

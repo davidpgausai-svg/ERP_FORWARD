@@ -8,13 +8,13 @@
 
 **Discovery and analysis** — understanding the legacy estate from PeopleSoft extracts: reading metadata and inventories, diffing dated snapshots for configuration drift, analyzing customizations, security and access, integrations, and the reporting estate.
 
-**Process and design** — drafting current-state process maps from system evidence plus SME correction, and the design work that follows from them, including a live shared flow board a workstream team marks up together in a design workshop.
+**Process and design** — drafting current-state process maps from system evidence plus SME correction, and the design work that follows from them, including a live shared flow board a workstream team marks up together in a design workshop. Then building: a written build guide for a module, or a live guided build in the development tenant with Claude in Chrome.
 
 **People and adoption** — change impacts, stakeholder analysis, communications, readiness, the Change Network, and training.
 
 **Orientation** — this skill; the way in.
 
-As of the last review, the program plugin carried skills across all five families, including: start-here, status-reporting, raid-capture, decision-drafting, governance-navigator, peoplesoft-metadata-reader, snapshot-diff, customization-analysis, security-access-analysis, integration-discovery, report-rationalization, process-map-drafting, process-and-decision-modeling, process-flow-board, source-to-import-workbooks, erp-module-build-guide, and change-management. Treat this as illustrative history, not a checklist — always enumerate live.
+As of the last review, the program plugin carried skills across all five families, including: start-here, status-reporting, raid-capture, decision-drafting, governance-navigator, peoplesoft-metadata-reader, snapshot-diff, customization-analysis, security-access-analysis, integration-discovery, report-rationalization, process-and-decision-modeling, process-flow-board, source-to-import-workbooks, erp-module-build-guide, guided-configuration, and change-management. Treat this as illustrative history, not a checklist — always enumerate live.
 
 **Discovery without a DBA.** The metadata-reader skill has three entry modes — extract CSVs, PS Query downloads, and screenshots of PeopleSoft pages — and a runbook for producing the extracts. A functional analyst with only page access can start on day one; the skill says what a screenshot can and cannot prove, and what to capture next.
 

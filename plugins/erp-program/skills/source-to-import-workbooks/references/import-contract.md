@@ -10,10 +10,11 @@
 | INVENTORY | legacy_object | A table, module, report, interface, extract, or configuration item | A process map on its own |
 | INVENTORY | shadow_system | A locally managed or unofficial system, with evidence it is so | A system merely mentioned, with no evidence it is shadow |
 | INVENTORY | crosswalk_domain | An explicitly documented source-to-target mapping domain | Unvalidated or inferred mappings |
+| INVENTORY | integration | A named interface or feed between systems, with a stable source identifier (inventory ID, node or process name) | An interface you inferred but the source doesn't name; a system (use legacy_system) |
 | REQUIREMENTS | requirement | An assessed requirement with a fit-gap disposition | General meeting notes, unassessed ideas |
 | RAID | raid_item | An explicit risk, assumption, issue, or dependency | Decisions, action lists, vague concerns without a RAID classification |
 
-**Not stageable at all:** business_process, configuration_object, decision, meeting, milestone, policy, evidence_link, record_link, approval_request. If the best home for a candidate is one of these, it belongs in the review pack with a note on where it should eventually live — not force-fitted into a supported family.
+**Not stageable here:** business_process, configuration_object, decision, meeting, milestone, policy, evidence_link, record_link, approval_request. Test cases can be imported, but through Testing › Import test cases, not this skill: discovery documents are not test-case sources. If the best home for a candidate is one of these, it belongs in the review pack with a note on where it should eventually live — not force-fitted into a supported family.
 
 ## Universal columns (every file)
 
@@ -25,6 +26,10 @@ Two rules that generate most avoidable errors:
 - **Never invent a sensitive classification.** PAYROLL_SENSITIVE, SECURITY_SENSITIVE, RESTRICTED, and CONFIDENTIAL are meaningful controls, not descriptive adjectives. Apply them only when the source or the user says so. When sensitivity is genuinely unclear, use the INTERNAL default *and note it in the review pack* so a human can raise it.
 
 ## The judgment calls
+
+**Criticality: UNKNOWN is left out on purpose.** The record schema and staging accept `criticality = UNKNOWN` for legacy systems and integrations, but this contract doesn't: criticality is a conclusion. If the source doesn't state it, the candidate goes to the review pack. The other UNKNOWN values (direction, mechanism, lifecycle status) are allowed, because a source can honestly not say.
+
+**Integrations: identity and lineage are required.** `externalInventoryId` is the identifier the source itself uses, never a row number, because it is how later imports recognize the same interface. `sourceLineage` names the file, sheet or page and row. `sourceSystemRecordId` and `destinationSystemRecordId` take a legacy_system record UUID or stay blank; never put a system name there. `futureDisposition` is UNASSESSED unless the source or the user states it.
 
 **Requirements: `fitGapDisposition` is the gate.** Staging rejects `NOT_ASSESSED`. That value exists in the record schema but cannot be imported — so an unassessed requirement is not import material. Put it in the review pack with a reviewer action asking for the assessment. Never guess a disposition to get a row through; STANDARD vs. GAP is a design conclusion with real consequences.
 

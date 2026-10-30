@@ -34,7 +34,7 @@ Offer the board when someone on ERP Forward:
 Do not use it when:
 
 - the user already has a final, agreed step list and just wants the record. Build the package directly.
-- the user wants a current-state map from PeopleSoft evidence. Use process-map-drafting first; a board can follow for the future state.
+- the user wants a current-state map from PeopleSoft evidence. Read the evidence with peoplesoft-metadata-reader and draft the CURRENT map with process-and-decision-modeling first; a board can follow for the future state.
 - the user wants a formal BPMN file or DMN decision table. Use process-and-decision-modeling. The board can feed it.
 
 In a voice conversation, say the board is built in the text chat and offer to set it up there. Keep voice replies short.
@@ -212,8 +212,12 @@ When the user asks Claude to change the board ("add a budget office approval ove
 4. **Placement:** call `record_path_get` and tell the user where the process will land and why. Scope it to the confirmed workstream.
 5. **Order the steps.** Sort by stage (`col`), then lane order, then id. That gives each step a unique workflow order while keeping parallel steps adjacent.
 6. **Build one `business_process_submit_group` call.**
-   - **Parent:** future-state Workday business process. `targetPlatformMapping.segments` come from the ordered steps; `order` is workflow order. Each segment carries the step code, title, detail, and lane as the performing role.
-   - **Branching:** if the schema has fields for predecessors, successors, gateways, or conditions, populate them from `edges`, `split`, and `join`. If it does not, write the structure into each segment's description in a fixed form, for example: `Runs in parallel with P2P-040b. Follows P2P-030 (parallel split). Leads to P2P-050 (merge, waits for all).` and for decisions: `Decision: Within tolerance → P2P-070; Exception → P2P-060.` Also summarize the branching in the parent description.
+   - **Parent:** future-state Workday business process. `targetPlatformMapping.segments` come from the ordered steps. Each segment has these fields and no others:
+     - `order`: workflow order, starting at 1 with no gaps;
+     - `segmentName`: the step code and title, for example `P2P-040 Match invoice to PO` (required: the server rejects a row without it);
+     - `evidenceStatus`: `INSUFFICIENT` for every step that came from the board. A sketch is not evidence, and if you leave the field out the server records the step as EVIDENCED. Use `EVIDENCED` only for a step a cited, retrieved source supports, and name that source in the note;
+     - `evidenceNote`: the performing role (the lane), the step detail, and the branching described below.
+   - **Branching:** the segment schema has no predecessor, gateway or condition fields, so write the structure into each segment's `evidenceNote` in a fixed form, for example: `Runs in parallel with P2P-040b. Follows P2P-030 (parallel split). Leads to P2P-050 (merge, waits for all).` and for decisions: `Decision: Within tolerance → P2P-070; Exception → P2P-060.` Also summarize the branching in the parent description.
    - **Do not** set `configurationObjectId` or `buildOrder` from the board. The board lists candidate objects only; a sketch does not establish build order. Leave both unset and report the gap.
    - **Children:** one `configuration_object` per distinct candidate object across all steps (dedupe by normalized name; list in its description which step codes use it). Every decision split with business rules (thresholds, categories) is a good `decision` child if the rule isn't settled. Unresolved notes the user wants captured become `decision` (an unmade choice) or `raid_item` (risk, issue, assumption, dependency) children.
    - Never include SKUs as children.

@@ -19,7 +19,7 @@ So: read the live list, filter to the program's plugin (skills prefixed `erp-pro
 
 People new to this arrive expecting to *call* skills like commands — typing `/skill-name`, `@skill`, or the exact plugin path. That isn't how they work, and the failed attempt makes people think the library is broken or unavailable to them.
 
-Teach this directly, early, and without condescension: **you don't invoke a skill, you describe your task.** Skills trigger automatically when what you're asking matches what a skill is for. "I'm working on our TA workflow and need to get it approved" reaches the right skills; `/erp-program:governance-navigator` reaches nothing. The practical advice is to say what you're doing, what you have, and what you need — the way you'd brief a colleague — and let the matching happen. If someone wants a specific skill deliberately, naming it in a sentence works fine ("use the process-map-drafting approach for this").
+Teach this directly, early, and without condescension: **you don't invoke a skill, you describe your task.** Skills trigger automatically when what you're asking matches what a skill is for. "I'm working on our TA workflow and need to get it approved" reaches the right skills; `/erp-program:governance-navigator` reaches nothing. The practical advice is to say what you're doing, what you have, and what you need — the way you'd brief a colleague — and let the matching happen. If someone wants a specific skill deliberately, naming it in a sentence works fine ("use the process-flow-board approach for this").
 
 ## Three modes — pick the one the person is actually in
 

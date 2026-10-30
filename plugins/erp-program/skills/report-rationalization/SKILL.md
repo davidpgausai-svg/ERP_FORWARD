@@ -29,7 +29,7 @@ Read `../../references/extract-library-guide.md` first; follow metadata-reader h
 
 ## Landing the output
 
-Per `../../references/output-conventions.md`: DRAFT legacy_report records with dispositions via MCP when connected; dispositions are proposals until functional owners approve them.
+Per `../../references/output-conventions.md`: when connected, write DRAFT `legacy_object` records with `objectType: REPORT` (there is no separate report record type; confirm fields with `schema_get`). Keep the detailed dispositions above in the CSV. On the record, map them to `disposition`: RETIRE → RETIRE, REPLACE_TARGET_STANDARD → REPLACE, REBUILD_TARGET_CUSTOM → MIGRATE, CONSOLIDATE_INTO → REPLACE (name the survivor in the description), KEEP_LEGACY_ARCHIVE → RETAIN, undecided → ASSESS. Put the detailed label in the description. Dispositions are proposals until functional owners approve them.
 
 ---
 
