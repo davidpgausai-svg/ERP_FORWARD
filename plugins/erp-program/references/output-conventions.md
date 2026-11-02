@@ -16,6 +16,8 @@ The connector's own instructions are authoritative; these are the rules that mat
 - A citation written in a record says what the record cites, not that anyone read the source. Retrieve the source with an evidence tool before calling a claim supported.
 - An EVALUATING SKU is under evaluation, not purchased.
 - Refer to records by the stable `recordKey` from `record_search`, with its exact title and type label. If several records match a name, show them and ask which one the person means.
+- `record_list` and `record_search` return one page of summaries. If `complete` is false, you are holding part of the result: keep paging (`nextCursor` for `record_list`, `nextOffset` for `record_search`) before you count, summarize, compare or recommend. If you stop early, tell the person how many of the `total` records you read. When `partialFamilies` appears, read that whole family (`business_process_package_get` for a business process) before reasoning about it.
+- Summaries carry short payload facts (dates, statuses, severity) in `payloadSummary`. Fields listed in `payloadOmittedFields` were left out; read them with `record_get` before relying on them.
 - Before saying something is not in ERP Forward or not in the documentation, call `glossary_lookup` on the term and search again with the words it returns. An empty search is not evidence of absence.
 - Claude cannot upload files through MCP. A person uploads files in Keystone; the only authored content Claude can attach is BPMN XML, through `record_bpmn_attach`.
 
