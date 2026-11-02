@@ -12,7 +12,8 @@ A status report exists to force three honest sentences per workstream: what move
 1. If the ERP Forward MCP connector is available, pull the factual spine — do not ask the user for facts the record layer already holds:
    - readiness score and blockers: `readiness_get`, `readiness_blockers`;
    - open RAID items by workstream and decisions awaiting sign-off: `record_search` with type `raid_item` or `decision`;
-   - milestones against baseline: `record_search` with type `plan_milestone` (`baselineDate`, `forecastDate`, `milestoneStatus`);
+   - milestones against baseline: `record_search` with type `plan_milestone` (`baselineDate`, `forecastDate`, `milestoneStatus` are in each item's `payloadSummary`);
+   - page through every result before counting or rolling up: when a response says `complete: false`, call again with `offset = nextOffset` until `hasMore` is false, so a status report never reflects only the first page;
    - pending approvals: `approval_list_mine`;
    - project progress and gates: `project_list`, `project_gates_get`.
    Carry each record's status: a DRAFT decision or milestone is a proposal, not a fact.
