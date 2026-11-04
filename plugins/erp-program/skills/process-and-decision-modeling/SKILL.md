@@ -43,13 +43,14 @@ Ask, unless the answer is obvious from the conversation:
 - Is this a CURRENT-state map (documenting what happens today) or a FUTURE-state map (proposing what should happen)? These are different `processKind` values and different downstream consequences. CURRENT maps document reality; FUTURE maps drive change-impact records and cutover planning.
 - What existing records inform this map? Use `record_search` with the workstream and record types `business_process`, `requirement`, `policy_constraint`, `legacy_system`, `configuration_object`. Read the ones that look load-bearing.
 - If a CURRENT-state map already exists for the same process, this FUTURE draft should link to it via a typed link once it's created. Note the id for later.
+- Read the pillar's Target Operating Model (TOM, the "Op Model") before you name a single lane. Call `operating_model_get` with the process's `businessProcessRecordKey` when the process already exists, otherwise with its `pillar` (`operating_model_list` names them). Its roles are who does the work in the future state, with each role's delivery model (self-service, shared service center, departmental…) and where the work happens. Carry their status: a DRAFT TOM or role is a proposal, not an approved staffing decision. If the pillar has no TOM yet, say so plainly and continue with clearly provisional role names.
 
 ### 2. Draft the BPMN XML
 
 You write BPMN 2.0 XML directly. bpmn.io renders whatever valid BPMN 2.0 you produce. Structure:
 
 - One `<bpmn:process>` element, `isExecutable="false"` (this is a design artifact, not a runtime model).
-- Lanes for roles: one `<bpmn:lane>` per role that transacts. Prefer real role names from the record layer ("Payroll Analyst", "Timekeeper") over abstract ones ("User").
+- Lanes for roles: one `<bpmn:lane>` per role that transacts. Name each lane exactly after a TOM role's title, or one of that role's other lane names, from `operating_model_get`. A lane that matches no role shows up as a gap on the operating model. If the process needs a role the TOM doesn't have, don't invent a lane name silently: tell the person and offer a `tom_role` DRAFT as a child of that pillar's `operating_model`. Never use abstract names such as "User".
 - Tasks: user tasks for human work, service tasks for system-invoked work, send/receive tasks for handoffs to external systems. Give every task a meaningful `name`.
 - Gateways: `exclusiveGateway` for XOR decisions, `parallelGateway` for AND, `inclusiveGateway` for OR. Do not use complex gateways or event-based gateways unless you truly need them; simpler is more reviewable.
 - Sequence flows: one `<bpmn:sequenceFlow>` per arrow, with a `conditionExpression` only on flows leaving a gateway. Condition text should be a plain human-readable rule, not an executable expression.
@@ -64,7 +65,7 @@ Keep first drafts small. A 12-task diagram that captures the shape wins over a 4
 - Call `schema_get` for `business_process` and follow it; the field names below are the current ones, but the schema wins.
 - Create the record as a DRAFT. For a future-state process with related drafts (RAID items, decisions, policy constraints, configuration objects), use one `business_process_submit_group` call; otherwise `record_create_draft` with `recordType: "business_process"`. Set `workstreamId`, `title`, `description` (one sentence — what this process does) and a `payload` with:
   - `processKind` (CURRENT, FUTURE or INTERIM), `processOwner` (a role), `affectedWorkstreamIds`, and `evidenceFormat`;
-  - `targetPlatformMapping.segments`: one row per step, in workflow order, each with `order` (1, 2, 3…), `segmentName`, `evidenceStatus` (INSUFFICIENT unless a cited source backs the step; the server marks a row EVIDENCED if you leave it out) and `evidenceNote` (the role and any detail). Leave `configurationObjectId` and `buildOrder` unset unless an existing configuration object and an established build order support them;
+  - `targetPlatformMapping.segments`: one row per step, in workflow order, each with `order` (1, 2, 3…), `segmentName`, `evidenceStatus` (INSUFFICIENT unless a cited source backs the step; the server marks a row EVIDENCED if you leave it out) and `evidenceNote` (the TOM role that performs the step, and any detail). Leave `configurationObjectId` and `buildOrder` unset unless an existing configuration object and an established build order support them;
   - `plannedGoLive` only when an approved milestone supports the date. A date from a draft decision is a proposal: leave it blank and say why.
   Do not write `summary` or `ownerRole`; they are retired fields kept only for older records.
 - Attach the BPMN with `record_bpmn_attach`: the record's key, exact title and type, a plain-language purpose and description of the diagram, the complete BPMN 2.0 XML with diagram shapes, and the record's current version. This is the only tool that accepts XML you wrote. `evidence_attach` only attaches a file a person already uploaded, and you cannot upload files. The server returns its own parsed process name, counts and validation issues; if the XML is rejected, fix it and attach again. Only say the diagram is attached after the tool returns an attachment id.
@@ -73,6 +74,7 @@ Keep first drafts small. A 12-task diagram that captures the shape wins over a 4
 ### 4. Run the conflict check
 
 - Call `business_process_conflicts_get` with the record id.
+- Call `operating_model_get` with the process's `businessProcessRecordKey`. Its `forProcess.lanes` shows each lane in the attached diagram and the TOM role it matches. Report every lane with no role, and propose either renaming the lane or (on a DRAFT role) adding the lane name to the role's `laneNames`. This is a design gap, not a submission blocker.
 - Interpret the response:
   - **CLEAR:** hand it to the human with "no conflicts detected; you can submit it for review in Keystone."
   - **SOFT_CONFLICT (warnings only):** for each warning, explain what it means in plain language, name the referenced record, and propose a resolution. The human will need to acknowledge each warning with a rationale in the submit dialog; make sure they know why they're acknowledging it, not just that they need to click.
