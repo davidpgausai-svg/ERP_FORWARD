@@ -80,7 +80,9 @@ Then, silently:
 
 Propose lanes and a starter flow the team will edit. Keep lanes to 3 to 8 and seed 5 to 15 steps. Every seeded step is `status: "open"`. Present the seed as a starting proposal, never as an agreed design.
 
-**Starter lanes by pillar** (adjust to the process):
+**Lanes come from the Target Operating Model first.** Call `operating_model_get` with the pillar. If it returns roles, use the role titles as the lanes (the roles that perform this process, 3 to 8 of them), and tell the team the TOM's status: a DRAFT TOM is a proposal. When the team adds a lane the TOM doesn't have, note it as an open question and offer a `tom_role` DRAFT under the pillar's operating model once the flow is locked. Use the starter lanes below only when the pillar has no TOM or no roles yet, and say they are provisional. Never create an operating model from the board; offer role drafts only after the team agrees.
+
+**Starter lanes by pillar** (fallback when no TOM roles exist; adjust to the process):
 
 - Procure-to-Pay: Requester, Approver, Procurement, Receiver, Accounts Payable, Treasury
 - Record-to-Report: Preparer, Reviewer, GL Accounting, Controller, Systems

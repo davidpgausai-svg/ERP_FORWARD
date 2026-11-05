@@ -49,6 +49,8 @@ Segment by how work is actually performed, not by org chart. Academic units, cen
 
 To see how work is actually performed, use the legacy transaction data when the ERP Forward connector is available. It is the PeopleSoft Finance transaction export: who performs each transaction type today, in which department and division, and how often. `legacy_transaction_list` shows the types and the future-state processes they map to. `legacy_transaction_summary` gives counts by department, division and job family. `legacy_transaction_people` names the people who do the work, which is how the program finds subject-matter experts and real audiences instead of guessing from titles. Names are approved for program use for exactly this purpose. Leave salary out of change deliverables, and aggregate by role or department in anything shared beyond the change team.
 
+The other half is the Target Operating Model (TOM, the "Op Model"). `operating_model_get` returns each pillar's future roles, how and where the work is delivered (self-service, shared service center, departmental), the target FTE range, and how many people do each role's work in PeopleSoft today. The gap between today's people and the future role is the change impact: when 146 people enter vouchers today and a shared service center of 14 to 20 will do it, the other department staff are an audience whose job changes. Carry the TOM's status into what you write. A DRAFT TOM or a role whose delivery model is pending a decision is a proposal, so describe that impact as conditional, not decided.
+
 ## Communications
 
 Every planned communication carries these ten fields:
