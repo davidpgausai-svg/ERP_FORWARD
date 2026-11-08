@@ -14,7 +14,7 @@
 
 **Orientation** — this skill; the way in.
 
-As of the last review, the program plugin carried skills across all five families, including: start-here, status-reporting, raid-capture, decision-drafting, governance-navigator, peoplesoft-metadata-reader, snapshot-diff, customization-analysis, security-access-analysis, integration-discovery, report-rationalization, process-and-decision-modeling, process-flow-board, source-to-import-workbooks, erp-module-build-guide, guided-configuration, and change-management. Treat this as illustrative history, not a checklist — always enumerate live.
+As of the last review, the program plugin carried skills across all five families, including: start-here, status-reporting, raid-capture, decision-drafting, governance-navigator, peoplesoft-metadata-reader, snapshot-diff, customization-analysis, security-access-analysis, integration-discovery, report-rationalization, process-and-decision-modeling, process-flow-board, source-to-import-workbooks, erp-module-build-guide, guided-configuration, change-management, and foundation-org-setup. Treat this as illustrative history, not a checklist — always enumerate live.
 
 **Discovery without a DBA.** The metadata-reader skill has three entry modes — extract CSVs, PS Query downloads, and screenshots of PeopleSoft pages — and a runbook for producing the extracts. A functional analyst with only page access can start on day one; the skill says what a screenshot can and cannot prove, and what to capture next.
 
@@ -33,6 +33,8 @@ As of the last review, the program plugin carried skills across all five familie
 **Change management and training.** The change-management skill is the hub; process mapping supplies the current-to-future comparison that generates change impacts, so those two chain naturally.
 
 **PMO.** Status reporting, decision drafting, governance navigation, and RAID — the program's operating rhythm. Add readiness and reporting outputs as the record layer comes online.
+
+**Program Director and workstream leads.** Foundation & Org setup first: the eight decisions on companies, tree shape, the cost center owner and worktags that every supervisory org and cost center depends on. Example prompt: "Start Foundation & Org setup." Claude drafts each agreed answer; the Program Director signs it in Keystone.
 
 ## How to ask well
 
