@@ -14,7 +14,7 @@
 
 **Orientation** — this skill; the way in.
 
-As of the last review, the program plugin carried skills across all five families, including: start-here, status-reporting, raid-capture, decision-drafting, governance-navigator, peoplesoft-metadata-reader, snapshot-diff, customization-analysis, security-access-analysis, integration-discovery, report-rationalization, process-and-decision-modeling, process-flow-board, source-to-import-workbooks, erp-module-build-guide, guided-configuration, change-management, and foundation-org-setup. Treat this as illustrative history, not a checklist — always enumerate live.
+As of the last review, the program plugin carried skills across all five families, including: start-here, status-reporting, raid-capture, decision-drafting, governance-navigator, peoplesoft-metadata-reader, snapshot-diff, customization-analysis, security-access-analysis, integration-discovery, report-rationalization, process-and-decision-modeling, process-flow-board, operating-model-setup, source-to-import-workbooks, erp-module-build-guide, guided-configuration, change-management, and foundation-org-setup. Treat this as illustrative history, not a checklist — always enumerate live.
 
 **Discovery without a DBA.** The metadata-reader skill has three entry modes — extract CSVs, PS Query downloads, and screenshots of PeopleSoft pages — and a runbook for producing the extracts. A functional analyst with only page access can start on day one; the skill says what a screenshot can and cannot prove, and what to capture next.
 
