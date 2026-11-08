@@ -1,6 +1,6 @@
 ---
 name: foundation-org-setup
-description: Run the Foundation & Org Design setup interview in Keystone (ERP Forward) — the eight decisions every organization answers before designing companies, supervisory organizations, cost centers and worktags (the Foundation Data Model), one at a time, drafting each agreed answer for the Program Director to sign. Use this whenever someone says "Start Foundation & Org setup", pastes that prompt from the Foundation & Org page, asks to work on FDM, org design, supervisory orgs, cost centers, worktags, companies or entities, the department crosswalk, line of sight, or asks about Gate A or Gate B; and when someone copied a prompt from a Foundation & Org hover card ("Help me decide which worktags we need besides cost center"). Requires the ERP Forward connector. Not for loading department files or drawing the org tree yet; those are later phases.
+description: Run the Foundation & Org Design setup interview in Keystone (ERP Forward) — the eight decisions every organization answers before designing companies, supervisory organizations, cost centers and worktags (the Foundation Data Model), one at a time, drafting each agreed answer for the Program Director to sign. Use this whenever someone says "Start Foundation & Org setup", pastes that prompt from the Foundation & Org page, asks to work on FDM, org design, supervisory orgs, cost centers, worktags, companies or entities, the department crosswalk, line of sight, or asks about Gate A or Gate B; and when someone copied a prompt from a Foundation & Org hover card ("Help me decide which worktags we need besides cost center"). Also use it when someone has staged a department, MO code, position or line-of-sight file on the Foundation & Org Sources tab and asks for help mapping its columns ("Map the columns of the staged HR departments file for MU"). Requires the ERP Forward connector. Not for drawing the org tree yet; that is a later phase.
 ---
 
 # Foundation & Org Setup
@@ -44,6 +44,20 @@ If the person you are talking to is the Program Director, still don't treat thei
 - **Gate B** opens when *Cost center owner* is signed. It unlocks cost centers, worktags and the crosswalks.
 
 When a gate is one signature away, say so. It's the most useful nudge you can give a busy Program Director.
+
+## Helping map a staged source file (after Gate A)
+
+Each institution exports its files differently. Keystone has one landing shape per source kind (HR departments, Finance departments, MO codes, positions, line of sight), and each file's columns are mapped to it once per institution; the mapping is saved for the next file.
+
+People upload and commit files on the **Sources** tab. You help with the mapping in between:
+
+1. Call `foundation_sources_get` to find the staged file (by institution and source), or use the file id in the prompt the person copied.
+2. Call `foundation_source_load_get`. Read the column headers, the current mapping and who set it, the required fields still missing, and the problems.
+3. Propose a mapping with `foundation_source_mapping_propose`: every field, keyed by field, with the exact column header or null. Use the headers' PeopleSoft names (DEPTID, DESCR, EFF_STATUS, POSITION_NBR, REPORTS_TO, EMPLID, LOS1). Pass the `revision` you read.
+4. Explain what Keystone found in plain words: how many rows will load, how many are left out and why, and what the warnings mean (for example, a parent department that belongs to another institution's file is usually fine).
+5. Tell the person to check the mapping and click **Commit** on the Sources tab. You cannot upload or commit.
+
+For line-of-sight and position files, you never see person IDs or names, and you should never ask for them. Map those files by header alone.
 
 ## Ending the run
 
