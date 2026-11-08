@@ -1,6 +1,6 @@
 ---
 name: foundation-org-setup
-description: Run the Foundation & Org Design setup interview in Keystone (ERP Forward) — the eight decisions every organization answers before designing companies, supervisory organizations, cost centers and worktags (the Foundation Data Model), one at a time, drafting each agreed answer for the Program Director to sign. Use this whenever someone says "Start Foundation & Org setup", pastes that prompt from the Foundation & Org page, asks to work on FDM, org design, supervisory orgs, cost centers, worktags, companies or entities, the department crosswalk, line of sight, or asks about Gate A or Gate B; and when someone copied a prompt from a Foundation & Org hover card ("Help me decide which worktags we need besides cost center"). Also use it when someone has staged a department, MO code, position or line-of-sight file on the Foundation & Org Sources tab and asks for help mapping its columns ("Map the columns of the staged HR departments file for MU"). Requires the ERP Forward connector. Not for drawing the org tree yet; that is a later phase.
+description: Run the Foundation & Org Design setup interview in Keystone (ERP Forward) — the eight decisions every organization answers before designing companies, supervisory organizations, cost centers and worktags (the Foundation Data Model), one at a time, drafting each agreed answer for the Program Director to sign. Use this whenever someone says "Start Foundation & Org setup", pastes that prompt from the Foundation & Org page, asks to work on FDM, org design, supervisory orgs, cost centers, worktags, companies or entities, the department crosswalk, line of sight, or asks about Gate A or Gate B; and when someone copied a prompt from a Foundation & Org hover card ("Help me decide which worktags we need besides cost center"). Also use it when someone has staged a department, MO code, position or line-of-sight file on the Foundation & Org Sources tab and asks for help mapping its columns ("Map the columns of the staged HR departments file for MU"). And use it to review and name an institution's proposed supervisory organization tree ("Suggest names for the organizations in MU's proposed tree", "Walk me through the flagged organizations"). Requires the ERP Forward connector.
 ---
 
 # Foundation & Org Setup
@@ -58,6 +58,17 @@ People upload and commit files on the **Sources** tab. You help with the mapping
 5. Tell the person to check the mapping and click **Commit** on the Sources tab. You cannot upload or commit.
 
 For line-of-sight and position files, you never see person IDs or names, and you should never ask for them. Map those files by header alone.
+
+## Reviewing and naming the proposed tree
+
+Keystone drafts each institution's supervisory organization tree from its line of sight, in code: one organization per manager and their team, under their own manager's organization. You never build or restructure the tree; you help people understand and name it.
+
+1. Call `foundation_tree_get` for the institution. If it has no tree yet, or the tree is out of date (`stale`), offer to draft it with `foundation_tree_build`; it is safe and keeps chosen names.
+2. Summarize in two lines: how many organizations and people, how many at the top, how many need a look, how many are named.
+3. **Flags**, when asked or when there are few: go through flagged organizations one at a time, in plain words, using the flag's help text. Typical outcomes: a team of one is folded into its manager's organization, a top-of-branch organization belongs under another institution's leader, a reporting loop means the source file is wrong (fix the file on the Sources tab, then rebuild). Restructuring is a decision for people; record what they decide, don't do it.
+4. **Names:** propose names in batches (up to 200 at a time), built from each organization's departments and its place in the tree, following any naming standard the program agreed. Show the proposals as a short table, apply the ones the person agrees to with `foundation_tree_rename`, and leave the rest. Names must be unique within the tree.
+
+You see organizations by `nodeKey`, size, departments and flags, never a manager's name or ID. Don't ask for them, and never put a person's name in an organization's name.
 
 ## Ending the run
 
