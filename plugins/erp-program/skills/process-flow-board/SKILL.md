@@ -80,7 +80,9 @@ Then, silently:
 
 Propose lanes and a starter flow the team will edit. Keep lanes to 3 to 8 and seed 5 to 15 steps. Every seeded step is `status: "open"`. Present the seed as a starting proposal, never as an agreed design.
 
-**Starter lanes by pillar** (adjust to the process):
+**Lane names.** Read `guide_get` topic `operating-model` and call `operating_model_get` for the pillar first; when the pillar has an operating model, its TOM roles are the lanes. Use the starter lanes below only when the pillar has no operating model, and tell the team they are provisional.
+
+**Starter lanes by pillar** (provisional, adjust to the process):
 
 - Procure-to-Pay: Requester, Approver, Procurement, Receiver, Accounts Payable, Treasury
 - Record-to-Report: Preparer, Reviewer, GL Accounting, Controller, Systems

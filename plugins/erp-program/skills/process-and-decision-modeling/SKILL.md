@@ -20,12 +20,9 @@ Never confuse the two. A process map answers *how*. A decision table answers *gi
 
 ## House rules — non-negotiable
 
-Every rule the rest of the ERP Forward skills follow applies here too. Restated because process and decision modeling is where "just get it approved" pressure is highest:
+The ERP Forward server's rules (drafts only, people submit and approve, record status, evidence) apply here and are not repeated; see `../../references/output-conventions.md`. Before drafting lanes or steps, read `guide_get` topics `operating-model` and `access`: lane names and the BPMN annotations that drive access design come from there. When a diagram is ready, guide the person to submit it themselves in Keystone, once the conflicts are resolved. The rules specific to modeling:
 
-- **Nothing canonical stays in chat.** If a diagram or a rule set exists only in this conversation, it does not exist. Every draft goes into the record layer via MCP.
-- **You draft; humans approve.** Never call `approval_decide` — it refuses by design. Never try to `review_submit` on behalf of the human; guide them to click submit themselves, in the record layer's UI, once the conflicts are resolved.
-- **Every write is agent-assisted and versioned.** The record layer stamps this automatically; you never bypass it by writing to storage directly.
-- **Check before you create.** Before drafting anything new, use `record_search` and `record_list` to see what's already in the record layer, `record_get` to read the ones that look related, and `record_links_list` to walk their dependencies. Duplicating an existing artifact wastes review capacity and confuses the audit trail.
+- **Walk what exists before you create.** Read the related records with `record_get` and walk their dependencies with `record_links_list`. Duplicating an existing artifact wastes review capacity and confuses the audit trail.
 - **The conflict check is not optional.** After you've drafted BPMN or DMN, call `business_process_conflicts_get` (for BPMN) or evaluate the DMN table against representative inputs before you hand the draft back to the human. If there are HARD conflicts, do not hand back "here's your draft, submit it"; hand back "here's your draft plus the four conflicts you need to resolve before this is submittable."
 - **Mapping steps first, BPMN second.** For a future-state process, the ordered mapping steps are what reviewers approve and what the build plan is built from. Draft them before, or with, the diagram, and keep the two telling the same story.
 - **No LLM in the record layer.** Your job is to write BPMN XML and DMN XML that the record layer's deterministic parser and evaluator can consume. If the parser rejects your output, fix the output — do not ask the record layer to loosen its parser.
@@ -49,7 +46,7 @@ Ask, unless the answer is obvious from the conversation:
 You write BPMN 2.0 XML directly. bpmn.io renders whatever valid BPMN 2.0 you produce. Structure:
 
 - One `<bpmn:process>` element, `isExecutable="false"` (this is a design artifact, not a runtime model).
-- Lanes for roles: one `<bpmn:lane>` per role that transacts. Prefer real role names from the record layer ("Payroll Analyst", "Timekeeper") over abstract ones ("User").
+- Lanes for roles: one `<bpmn:lane>` per role that transacts, named as the `operating-model` guide topic says. Annotate lanes and steps as the `access` topic says.
 - Tasks: user tasks for human work, service tasks for system-invoked work, send/receive tasks for handoffs to external systems. Give every task a meaningful `name`.
 - Gateways: `exclusiveGateway` for XOR decisions, `parallelGateway` for AND, `inclusiveGateway` for OR. Do not use complex gateways or event-based gateways unless you truly need them; simpler is more reviewable.
 - Sequence flows: one `<bpmn:sequenceFlow>` per arrow, with a `conditionExpression` only on flows leaving a gateway. Condition text should be a plain human-readable rule, not an executable expression.
