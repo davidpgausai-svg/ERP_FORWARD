@@ -36,3 +36,5 @@ Extract kit (`plugins/erp-program/extract-kit/`): the SQL that produces Packs 0â
 ## House rules baked into every skill
 
 Nothing canonical stays in chat; outputs land in the record layer (DRAFT, via MCP, schema-first) or as structured files in the extract library. Claude never submits or approves: a person submits each draft in Keystone and picks the approval route. No identified employee/student/payroll data â€” the extract library is metadata, config, and telemetry only. Every claim cites its source file and snapshot date. Changes to skills come through pull requests.
+
+The ERP Forward server is the source of truth for its own rules: its server instructions carry the rules every conversation needs, and its `guide_get` tool serves the full rules by module topic. Skills point to those topics instead of repeating them, and add only how to run the work well. When a skill and the server disagree, the server wins (see `plugins/erp-program/references/output-conventions.md`).

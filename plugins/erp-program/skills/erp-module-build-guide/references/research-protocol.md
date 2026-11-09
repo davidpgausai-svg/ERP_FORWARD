@@ -5,7 +5,7 @@ to retrieve from and how to avoid the failure modes.
 
 ## Establish the target first
 
-Call `vendor_status_get` before anything else. It returns the active vendor, the target
+Read `guide_get` topic `erp-evaluation` once per conversation; it holds the rules for candidate comparisons, single-vendor requests and saving comparisons, which this file does not repeat. Then call `vendor_status_get`. It returns the active vendor, the target
 ERP, the evaluation phase, which vendors' documentation is open, and how many documents
 are actually captured and searchable. Two things this prevents:
 
@@ -28,16 +28,10 @@ guide is for: never answer about one ERP with another's words or pages.
 | Governed evidence (both ERPs) | `vendor_search`, `vendor_guidance_get` | Human-approved, pinnable evidence. Use when the claim needs to survive an audit. Often sparse. |
 | Workday functional and admin config | `admin_docs_search`, `admin_docs_get` | The main Workday lane for build guides. Task names, setup steps, tenant settings, security domains, business process guidelines. |
 | Workday developer API reference | `developer_docs_search`, `developer_docs_get` | Web services, REST endpoints, integration payloads. |
-| Paradox / Olivia (a Workday add-on) | `paradox_docs_search`, `paradox_docs_get` | Candidate experience questions only. Never part of an Oracle guide. |
+| Paradox / Olivia (a Workday add-on) | `paradox_docs_search`, `paradox_docs_get` | Candidate experience questions only. |
 | Oracle Fusion documentation | `oracle_docs_search`, `oracle_docs_get`, `oracle_docs_releases`, `oracle_docs_release_diff` | The main Oracle lane: implementation and setup tasks, by release. |
 | Oracle reference | `oracle_reference_docs_search` | Oracle reference material that sits outside the release guides. |
-| Candidate comparison | `platform_docs_compare` | While the selection is unsigned and no vendor is named: the same question against every candidate, side by side. Never declare a winner. |
-
-Before concluding a topic isn't covered, call `glossary_lookup` on the term and search
-again with the words it returns. Workday, Oracle and PeopleSoft often name one concept
-differently (for example, PeopleSoft's DEPTID becomes Cost Center and Supervisory
-Organization in Workday). `NO_EVIDENCE_IN_CORPUS` means the captured documentation
-returned nothing for that query, not that the product lacks the capability.
+| Candidate comparison | `platform_docs_compare` | While the selection is unsigned and no vendor is named: the same question against every candidate, side by side. |
 
 If `vendor_search` returns nothing, that does not mean the topic is uncovered. Try
 `admin_docs_search` before concluding anything. The governed lane and the raw capture
