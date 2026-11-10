@@ -37,9 +37,9 @@ Follow this sequence every time. Do not skip steps; the value is in the loop, no
 Ask, unless the answer is obvious from the conversation:
 
 - Which workstream does this belong to? Use `workstream_list` to resolve names ("HR", "Payroll", "Finance") to workstream ids.
-- Is this a CURRENT-state map (documenting what happens today) or a FUTURE-state map (proposing what should happen)? These are different `processKind` values and different downstream consequences. CURRENT maps document reality; FUTURE maps drive change-impact records and cutover planning.
+- Is this documentation of how the work happens today, or a FUTURE-state design? Today's work is a `current_state` record (call `schema_get` for `current_state`): a narrative (`asIsNarrative`) with ordered `steps`, `rolesInvolved`, `systemsUsed`, `controlsAndApprovals`, `volumesAndTiming`, `painPoints` and `evidenceSource`; a BPMN attachment is optional. A FUTURE (or INTERIM) design is a `business_process`. Do not create a `business_process` with `processKind: CURRENT` for new work; existing ones still count as current state.
 - What existing records inform this map? Use `record_search` with the workstream and record types `business_process`, `requirement`, `policy_constraint`, `legacy_system`, `configuration_object`. Read the ones that look load-bearing.
-- If a CURRENT-state map already exists for the same process, this FUTURE draft should link to it via a typed link once it's created. Note the id for later.
+- Before drafting a FUTURE design, call `current_state_for_design` with the topic (or the design's key, title and type label when revising). Read what it returns in full and design against it, and say in the design which current-state record it starts from. If it finds nothing, ask the person how the work is done today and offer to capture a `current_state` draft first; do not design against an assumed current state.
 
 ### 2. Draft the BPMN XML
 
@@ -60,12 +60,12 @@ Keep first drafts small. A 12-task diagram that captures the shape wins over a 4
 
 - Call `schema_get` for `business_process` and follow it; the field names below are the current ones, but the schema wins.
 - Create the record as a DRAFT. For a future-state process with related drafts (RAID items, decisions, policy constraints, configuration objects), use one `business_process_submit_group` call; otherwise `record_create_draft` with `recordType: "business_process"`. Set `workstreamId`, `title`, `description` (one sentence — what this process does) and a `payload` with:
-  - `processKind` (CURRENT, FUTURE or INTERIM), `processOwner` (a role), `affectedWorkstreamIds`, and `evidenceFormat`;
+  - `processKind` (FUTURE or INTERIM; today's work is a `current_state` record instead), `processOwner` (a role), `affectedWorkstreamIds`, and `evidenceFormat`;
   - `targetPlatformMapping.segments`: one row per step, in workflow order, each with `order` (1, 2, 3…), `segmentName`, `evidenceStatus` (INSUFFICIENT unless a cited source backs the step; the server marks a row EVIDENCED if you leave it out) and `evidenceNote` (the role and any detail). Leave `configurationObjectId` and `buildOrder` unset unless an existing configuration object and an established build order support them;
   - `plannedGoLive` only when an approved milestone supports the date. A date from a draft decision is a proposal: leave it blank and say why.
   Do not write `summary` or `ownerRole`; they are retired fields kept only for older records.
 - Attach the BPMN with `record_bpmn_attach`: the record's key, exact title and type, a plain-language purpose and description of the diagram, the complete BPMN 2.0 XML with diagram shapes, and the record's current version. This is the only tool that accepts XML you wrote. `evidence_attach` only attaches a file a person already uploaded, and you cannot upload files. The server returns its own parsed process name, counts and validation issues; if the XML is rejected, fix it and attach again. Only say the diagram is attached after the tool returns an attachment id.
-- If related records exist, link them with `record_link`, using the link types `schema_get` lists and describing the direction in plain words ("from record A maps from record B"). Common cases: a future-state process `MAPS_FROM` its current-state map; a process `SATISFIES` or `IMPLEMENTS` a requirement; a `policy_constraint` `CONSTRAINS` the process. Legacy systems are referenced inside the BPMN with `erpForward:systemRef`; add a `RELATES_TO` link only if the person wants it explicit.
+- If related records exist, link them with `record_link`, using the link types `schema_get` lists and describing the direction in plain words ("from record A maps from record B"). Common cases: a future-state process `MAPS_FROM` its `current_state` record (from the design to the current state); a process `SATISFIES` or `IMPLEMENTS` a requirement; a `policy_constraint` `CONSTRAINS` the process. Legacy systems are referenced inside the BPMN with `erpForward:systemRef`; add a `RELATES_TO` link only if the person wants it explicit.
 
 ### 4. Run the conflict check
 
@@ -117,7 +117,7 @@ Same as BPMN: summarize what you did, name the record id, point at `/records/<id
 - If the process design surfaces a decision that needs to be made (like a target-platform choice or a policy-source contradiction), stop the BPMN workflow and use `decision-drafting` first. Land the decision, get it approved, then come back to the process.
 - If the process is really a change to organizational responsibility (a role that used to do X now does Y), use `change-management` to draft the change impact and stakeholder analysis. The BPMN captures the mechanic; change-management captures the human implication.
 - If the source material is a Visio, PDF, or discovery document, use `source-to-import-workbooks` to extract the process structure first, then come back to this skill to draft BPMN from that structured evidence.
-- If the person is mapping a CURRENT-state process from PeopleSoft evidence (approval routes, navigation, usage), read the evidence with `peoplesoft-metadata-reader` first, then draft the CURRENT map here and have the SMEs correct it before anyone designs the future state.
+- If the person is mapping a CURRENT-state process from PeopleSoft evidence (approval routes, navigation, usage), read the evidence with `peoplesoft-metadata-reader` first, then capture it as a `current_state` record with `record_create_draft` and have the SMEs correct it before anyone designs the future state.
 - If a team wants to sketch the flow together first, use `process-flow-board`, then build the record from the board.
 - If the request is really "who owns this decision," use `governance-navigator` before drafting anything.
 

@@ -34,7 +34,7 @@ Offer the board when someone on ERP Forward:
 Do not use it when:
 
 - the user already has a final, agreed step list and just wants the record. Build the package directly.
-- the user wants a current-state map from PeopleSoft evidence. Read the evidence with peoplesoft-metadata-reader and draft the CURRENT map with process-and-decision-modeling first; a board can follow for the future state.
+- the user wants a current-state map from PeopleSoft evidence. Read the evidence with peoplesoft-metadata-reader and capture it as a `current_state` record with process-and-decision-modeling first; a board can follow for the future state.
 - the user wants a formal BPMN file or DMN decision table. Use process-and-decision-modeling. The board can feed it.
 
 In a voice conversation, say the board is built in the text chat and offer to set it up there. Keep voice replies short.

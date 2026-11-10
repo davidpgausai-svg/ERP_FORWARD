@@ -81,7 +81,7 @@ Screenshots are how a functional analyst gets started on day one and how a speci
 - SoD, role design, org design from access data → `security-access-analysis`.
 - What talks to PeopleSoft → `integration-discovery`.
 - The reporting estate → `report-rationalization`.
-- Turning evidence into a current-state process map → `process-and-decision-modeling` (a CURRENT map, corrected by SMEs).
+- Turning evidence into a current-state process map → `process-and-decision-modeling` (a `current_state` record, corrected by SMEs).
 - A design document, Visio or fit-gap workbook rather than an extract → `source-to-import-workbooks` first.
 
 ---
