@@ -35,7 +35,9 @@ Extract kit (`plugins/erp-program/extract-kit/`): the SQL that produces Packs 0â
 
 ## Agent runner
 
-`runner/` runs the agents of ERP Forward jobs (Design, Config, Test). ERP Forward ships no LLM code, so the Claude part lives here and follows the skills above; ERP Forward enforces the agent's tools, scope, spend and step record on its own MCP endpoint. See `runner/README.md`.
+ERP Forward runs its jobs' agents itself, in its API server, using pinned copies of the skills above (process-and-decision-modeling, decision-drafting, raid-capture and `references/output-conventions.md`). **A change to those files reaches the agents only when ERP Forward re-pins them** with `scripts/sync-agent-playbooks.mjs` at a named commit.
+
+`runner/` is an optional external runner for the same runs: it claims a run over HTTP and is held to the same checks. You do not need it. See `runner/README.md`.
 
 ## House rules baked into every skill
 

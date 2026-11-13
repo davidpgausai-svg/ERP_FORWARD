@@ -1,7 +1,13 @@
-# ERP Forward agent runner
+# ERP Forward agent runner (optional)
 
-Runs the agents of ERP Forward **jobs**. ERP Forward itself ships no LLM code, so
-the Claude part of an agent lives here, next to the skills it follows.
+> **Optional.** ERP Forward now runs job agents itself, in its API server
+> (`artifacts/api-server/src/workers/agentRuns.ts`), with pinned copies of the
+> skills. Use this runner only to run agents outside ERP Forward, for example
+> against a test instance. It needs `AGENT_RUNNER_SECRET` set on ERP Forward;
+> without it ERP Forward's runner routes stay closed.
+
+An external runner for the agents of ERP Forward **jobs**. It reads the skills
+here directly, so it can try a skill change before ERP Forward pins it.
 
 ```
 person presses Run in ERP Forward ──► run is queued
