@@ -1,0 +1,16 @@
+{
+  "name": "erp-forward-agent-runner",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Runs ERP Forward job agents: claims queued runs, follows the plugin's skills, calls Claude, and works only through ERP Forward's MCP endpoint with the run's key.",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node src/index.mjs",
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "1.8.0",
+    "@modelcontextprotocol/sdk": "1.32.2"
+  }
+}

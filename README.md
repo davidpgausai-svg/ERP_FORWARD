@@ -33,6 +33,12 @@ Shared references (`plugins/erp-program/references/`):
 
 Extract kit (`plugins/erp-program/extract-kit/`): the SQL that produces Packs 0–6 — pure `SELECT`, written for Oracle with SQL Server and DB2 variants inline; run order, tool settings and sensitivity rules in its `README.md`. It ships inside the plugin so the `peoplesoft-metadata-reader` skill can walk anyone through running it.
 
+## Agent runner
+
+ERP Forward runs its jobs' agents itself, in its API server, using pinned copies of the skills above (process-and-decision-modeling, decision-drafting, raid-capture and `references/output-conventions.md`). **A change to those files reaches the agents only when ERP Forward re-pins them** with `scripts/sync-agent-playbooks.mjs` at a named commit.
+
+`runner/` is an optional external runner for the same runs: it claims a run over HTTP and is held to the same checks. You do not need it. See `runner/README.md`.
+
 ## House rules baked into every skill
 
 Nothing canonical stays in chat; outputs land in the record layer (DRAFT, via MCP, schema-first) or as structured files in the extract library. Claude never submits or approves: a person submits each draft in Keystone and picks the approval route. No identified employee/student/payroll data — the extract library is metadata, config, and telemetry only. Every claim cites its source file and snapshot date. Changes to skills come through pull requests.
