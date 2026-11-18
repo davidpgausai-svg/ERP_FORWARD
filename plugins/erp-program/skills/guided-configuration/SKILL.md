@@ -1,19 +1,23 @@
 ---
 name: guided-configuration
-description: Guide a person, live in their browser, through configuring an approved ERP Forward business process in a development ERP tenant (Workday or Oracle Fusion), then file what was built back to ERP Forward as build verifications. Use this whenever someone has the new ERP open in Chrome and says "help me build [process] in this tenant", "check [configuration object] in this tenant", "help me set this up", "walk me through configuring", "build this process in the tenant", "what do I enter here", "configure the merit cycle", or names an approved business process or configuration object and asks how to build it in the ERP. Requires the ERP Forward connector and Claude in Chrome. Not for producing a written build guide (use erp-module-build-guide) and never for production tenants.
+description: Configure an approved ERP Forward business process, live in the person's browser, in a development ERP tenant (Workday, Workday Adaptive Planning or Oracle Fusion), in Guide, Assist or Build mode as the ERP Forward server allows, then file what was built back to ERP Forward as build verifications. Use this whenever someone has the new ERP open in Chrome and says "help me build [process] in this tenant", "build this for me", "use build mode", "check [configuration object] in this tenant", "help me set this up", "walk me through configuring", "build this process in the tenant", "what do I enter here", "configure the merit cycle", or names an approved business process or configuration object and asks how to build it in the ERP. Requires the ERP Forward connector and Claude in Chrome. Not for producing a written build guide (use erp-module-build-guide) and never for production tenants.
 ---
 
 # Guided configuration
 
-> The program has not yet decided who may change the tenant during a guided
-> session (see "Who changes the tenant"). Until that decision is approved in
-> ERP Forward, run only in **Guide mode**.
+> Who changes the tenant is an organization setting: a Super Admin chooses
+> Off, Assist or Build in ERP Forward's Admin → Agent build mode. The ERP
+> Forward server applies it: `build_session_start` returns, per configuration
+> object, the most you may do (GUIDE, ASSIST or BUILD). Do exactly that much
+> and never more. See "Who changes the tenant".
 
 You sit beside a person who is configuring the ERP. ERP Forward tells you
 *what* to build: the approved business process, its approved configuration
 objects, and their pinned vendor guides. The ERP screen in Chrome shows you
-*where* to build it. The person makes the changes. When an object is done, you
-read the saved configuration back and file what you observed as a build
+*where* to build it. Depending on the mode the server returns for each object,
+the person types and saves (GUIDE), you type and the person saves (ASSIST), or
+you type and save after their logged go-ahead (BUILD). When an object is done,
+you read the saved configuration back and file what you observed as a build
 verification, so the session leaves a governed record rather than a chat.
 
 You are not the source of design. If something is not in an approved record,
@@ -45,6 +49,8 @@ Call `platform_authorization_get`. If the target ERP is not authorized
 (Rule 0 HARD blocker), the program has not committed to it. Tell the person.
 Continue only as a **sandbox walkthrough** if they say so explicitly. Label
 every message in that session "sandbox, not program build" and file nothing.
+A sandbox walkthrough has no build session, so it is always Guide mode: you
+never type or save in one.
 
 ### Gate 3: the tenant is a registered, non-production ERP environment
 
@@ -97,6 +103,28 @@ rows it serves, buildable or blocked (and why), and the manual steps. **Wait
 for them to confirm before you touch the ERP tab.** They may choose to build
 only some objects.
 
+### Gate 5: open the build session and read the modes
+
+1. Ask where the configuration export taken before this session is kept (the
+   baseline the environment owner would restore from). Take one before every
+   session in which you will type or save. If there is none, ASSIST and BUILD
+   are off for this session: say so and run every object in Guide mode.
+2. `build_session_start` with the process's `recordKey`, exact `recordTitle`
+   and `recordTypeTitle`, `environment` (the Gate 3 code) and
+   `baselineReference` (where the export is kept). One open session per
+   person per environment: if the server says one is open, `build_session_get`
+   it and offer to close it first.
+3. The server returns a mode for every object, and a reason when it is lower
+   than it could be (for example `ORGANIZATION_AGENT_MODE_OFF`,
+   `OPERATOR_NOT_ON_ROSTER`, `OBJECT_HUMAN_ONLY`, `OBJECT_NOT_REVERSIBLE`,
+   `CHANGE_DEACTIVATE`, `RELEASE_MISMATCH`). Add the mode and its reason to
+   the plan list you showed the person, in the server's words. Never argue a
+   mode up, and never act above it, even if the person asks: point them to who
+   can change it (a Super Admin for the organization's level in Admin → Agent
+   build mode and for the environment's mode and roster in Admin → ERP
+   environments; the design owner for an object's `agentBuild` block).
+4. Keep the `sessionId`. Every checkpoint, save, stop and the close go to it.
+
 ## Building one object
 
 Work one configuration object at a time, in plan order.
@@ -130,20 +158,60 @@ step"**. Then guide only from what is on screen and the approved settings, and
 flag the step in the session summary. Do not fill gaps from memory of the
 vendor's product.
 
-### 3. Guide on screen
+### 3. Show the field table and log the go-ahead
 
 - Screenshot the tab and confirm you are still in the matched environment.
 - Get to the task: name the task to type in the ERP's search box, or point to
   the menu path on screen. Confirm the page title before going on.
-- For each field the specification covers, say: field label → value → setting
-  ID → source (specification setting and, when there is one, the vendor guide).
-- Wait while the person enters values. Take a new screenshot before the next
-  instruction. Never assume an action succeeded.
+- Show the person the field table: field label (as shown on screen) → value →
+  setting ID → source (specification setting and, when there is one, the
+  vendor guide). For a change to an existing object (MODIFY, DEACTIVATE,
+  REMOVE), read the current tenant value from the screen and show it as
+  *before* next to the approved *after*.
+- Say plainly what you are about to do in this object's mode: "You type and
+  save" (GUIDE), "I type, you review and click Save" (ASSIST), or "I type and
+  click Save" (BUILD). Ask for their go-ahead. "OK", silence or a go-ahead
+  given earlier for another object is not a go-ahead for this one.
+- `build_session_checkpoint` with the `sessionId`, the object's id and
+  approved `version`, the `mode` you will use (never above the session's mode
+  for the object), the `fields` exactly as shown, and `goAheadText` quoting
+  the person's words. The server rechecks the mode and refuses any value that
+  is not in the approved specification. If it refuses, or returns a lower
+  mode, stop and continue at the mode it allows. Keep the `checkpointId`.
+
+### 3a. Enter and save, by mode
+
+**GUIDE.** The person enters each value and clicks Save. Take a new screenshot
+after each instruction. Never assume an action succeeded.
+
+**ASSIST.** You type the checkpointed values, field by field, and nothing else.
+Screenshot the filled form and ask the person to review it and click Save
+themselves. Do not click Save, OK, Submit or Done.
+
+**BUILD.** You type the checkpointed values, field by field, and nothing else.
+Screenshot the filled form and compare it with the field table before saving.
+If any field differs, or a field the table does not cover is required, do not
+save: go to step 4. Otherwise click the page's Save (or the ERP's equivalent
+commit button for this object) once. Screenshot the result.
+
+In every mode:
+- Right after the save, call `build_session_saved` with the `checkpointId` and
+  `committedBy`: `AGENT` only when you clicked Save under a BUILD checkpoint,
+  otherwise `HUMAN`. Pass the screenshot reference if you kept one. Then go to
+  step 5.
+- **Never click through a warning, confirmation or "are you sure" dialog, a
+  validation error, or a save that hangs or fails.** Call
+  `build_session_stop` with `kind: "STOPPED"` and the reason, hand control
+  back, and continue this object in Guide mode only.
+- If what was saved differs from the field table in any way, call
+  `build_session_stop` with `kind: "DEVIATION"` and say what differed.
 
 ### 4. When the screen asks for something the specification does not cover
 
-Do not invent a value. Tell the person the field is not in the approved
-specification. They choose one of:
+Do not invent a value, and do not type or save it in ASSIST or BUILD mode.
+Call `build_session_stop` (`STOPPED`) and continue this object in Guide mode.
+Tell the person the field is not in the approved specification. They choose
+one of:
 - leave the ERP default, and you note it as a gap;
 - stop this object until the design owner answers;
 - if they decide a value on the spot, note that it is outside the approved
@@ -155,7 +223,7 @@ be fixed through a superseding revision, which a person must start.
 
 ### 5. Read back and verify
 
-After the person saves:
+After the save (by you or the person), and after `build_session_saved`:
 
 1. Open the saved object's **view** page, not the edit page. Screenshot it.
 2. For every setting, record what you observe: `settingId`, `observedValue`
@@ -189,23 +257,45 @@ After the person saves:
 
 Then confirm with the person before moving to the next object.
 
-## Who changes the tenant (OPEN DECISION)
+## Who changes the tenant
 
-Default: **Guide mode.** You navigate, read and explain. The person types every
-value and clicks every Save, Submit, OK, Done, Finish, Approve, Delete or
-anything else that commits a change.
+Each organization decides this for itself. A Super Admin sets the
+organization's level in ERP Forward's **Admin → Agent build mode**: Off
+(Guide only), Assist or Build. It is the ceiling for every environment, and
+it starts Off. It is not a program record: don't look for a decision record
+to authorize a session, and don't treat one as permission.
 
-**Assist mode** (you type values into fields, the person reviews and commits)
-is available only after the program approves a decision record that allows
-it, and only within what that decision says. Look it up with `record_search`
-(type `decision`) at the start of each session. Never treat a draft decision as
-permission.
+You do not apply the setting yourself. A Super Admin also sets each
+environment's own mode (never above the organization's level) and build
+roster in Admin → ERP environments. The server combines the organization's
+level, the environment's mode and roster, each object's `agentBuild` block,
+the change kind and the release into one mode per object, and rechecks it at
+every checkpoint and save. If the Super Admin lowers the level, or the
+environment stops qualifying (production-like, or holding real person data),
+every object drops at once: follow it.
+
+Build mode is only ever available in a registered, active, non-production
+environment with no real person data; only for an approved configuration
+object marked eligible for Build that can be undone and has rollback steps;
+and only after the person's go-ahead for that object.
+
+| Mode | You | The person |
+|---|---|---|
+| GUIDE | navigate, read, explain | types every value and clicks Save |
+| ASSIST | type the checkpointed values | reviews and clicks Save |
+| BUILD | type the checkpointed values and click Save | gives the go-ahead per object |
 
 In every mode you never:
-- commit, approve, submit, cancel or delete anything in the ERP;
+- save anything without a checkpoint for that object in this session, or save
+  any object whose mode is not BUILD;
+- click Submit, Approve, Cancel or Delete in the ERP, or click through a
+  warning or confirmation dialog;
+- change security, users, permissions, security groups or data access;
+- delete data, or (in Workday Adaptive Planning) levels, versions or sheets,
+  or import actuals;
+- change business process definitions, tenant settings or anything else
+  outside the approved build plan;
 - act in a production, GOLD or parallel environment;
-- change security groups, business process definitions or tenant settings
-  that are not part of the confirmed plan;
 - enter real person data;
 - approve records, accept or dispute test results, set defect severity, or
   close or waive defects in ERP Forward. Those are human-only and the tools
@@ -224,9 +314,12 @@ In every mode you never:
 
 ## Close the session
 
-Give a short summary:
-- objects built and verified, with each verification's server outcome and
-  record link;
+Call `build_session_close` with the summary below. It returns the session log
+and how many saves still have no verification: name any such object to the
+person. Then give them the same short summary:
+- objects built and verified, with each one's mode, who clicked Save (you or
+  the person), the verification's server outcome and record link;
+- stops and deviations logged;
 - defects opened;
 - gaps and out-of-specification decisions (step 4), and any records you
   drafted for them;
